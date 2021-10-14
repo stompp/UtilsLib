@@ -1,0 +1,4 @@
+{
+    "sketch": "WavesTest.ino",
+    "board": "arduino:avr:uno"
+}

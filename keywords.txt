@@ -1,0 +1,26 @@
+#######################################
+# Syntax Coloring Map For UtilsLib
+#######################################
+
+#######################################
+# Datatypes (KEYWORD1)
+#######################################
+
+MillisTimer	KEYWORD1
+
+#######################################
+# Methods and Functions (KEYWORD2)
+#######################################
+
+check 		KEYWORD2
+set		KEYWORD2
+start		KEYWORD2
+stop		KEYWORD2
+pause		KEYWORD2
+resume		KEYWORD2
+remaining	KEYWORD2
+
+
+#######################################
+# Constants (LITERAL1)
+#######################################

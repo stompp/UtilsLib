@@ -1,0 +1,4 @@
+{
+    "sketch": "TestMillisTimer.ino",
+    "board": "arduino:avr:uno"
+}
