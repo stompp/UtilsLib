@@ -3,6 +3,7 @@
 #define _millis_utils_h_
 
 #include <Arduino.h>
+#include "timer_base.h"
 // #if ARDUINO < 100
 // #include "WProgram.h"
 // #else
@@ -83,59 +84,70 @@ uint16_t chronoDaysSinceMS(unsigned long sinceMillis);
 void printChronoTimeMSMsFor(unsigned long rawMillis, Stream *stream);
 void printChronoTimeFor(unsigned long rawMillis, Stream *stream);
 
-#define TIMER_NOT_SET 0
-#define TIMER_STOPPED 1
-#define TIMER_PAUSED 2
-#define TIMER_ACTIVE 3
 
-class MillisTimer
+class MillisTimer : public virtual TimerBase
 {
-private:
-    unsigned long _before;
-    unsigned long _remaining;
-    unsigned long _timeSet;
-    bool _loop;
-    byte _status;
+protected:
+    /* data */
+
+    virtual unsigned long t_now();
+
+    virtual unsigned long frequency_to_period(double hertzs);
 
 public:
-    MillisTimer();
-    MillisTimer(unsigned long ms, bool loop = false, bool start = false, bool triggerOnFirstCheck = false);
+    MillisTimer(/* args */);
+    MillisTimer(unsigned long t, bool loop = false, bool start = false, bool triggerOnFirstCheck = false);
     ~MillisTimer();
-
-    bool check();
-
-    void set(unsigned long ms, bool loop = false, bool start = false, bool triggerOnFirstCheck = false);
-
-    void setFrequency(double hertzs, bool start = false, bool triggerOnFristCheck = false);
-
-    void start(unsigned long ms, bool loop = false, bool triggerOnFirstCheck = false);
-
-    // void start(bool triggerOnFirstCheck);
-
-    void start();
-    void startIn(unsigned long ms);
-
-    void stop();
-    void pause(bool doPause = true);
-    void resume();
-
-    // void delay(unsigned long ms);
-
-    unsigned long remaining();
-
-    byte status();
-    operator bool();
-
-    void loopMode(bool loop);
-
-    float progress();
-
-    unsigned long progress100();
-
-    bool isActive();
-
-    void setRemaining(unsigned long remaining);
 };
+
+// class MillisTimer
+// {
+// protected:
+//     unsigned long _before;
+//     unsigned long _remaining;
+//     unsigned long _timeSet;
+//     bool _loop;
+//     byte _status;
+
+// public:
+//     MillisTimer();
+//     MillisTimer(unsigned long ms, bool loop = false, bool start = false, bool triggerOnFirstCheck = false);
+//     ~MillisTimer();
+
+//     bool check();
+
+//     void set(unsigned long ms, bool loop = false, bool start = false, bool triggerOnFirstCheck = false);
+
+//     void setFrequency(double hertzs, bool start = false, bool triggerOnFristCheck = false);
+
+//     void start(unsigned long ms, bool loop = false, bool triggerOnFirstCheck = false);
+
+//     // void start(bool triggerOnFirstCheck);
+
+//     void start();
+//     void startIn(unsigned long ms);
+
+//     void stop();
+//     void pause(bool doPause = true);
+//     void resume();
+
+//     // void delay(unsigned long ms);
+
+//     unsigned long remaining();
+
+//     byte status();
+//     operator bool();
+
+//     void loopMode(bool loop);
+
+//     float progress();
+
+//     unsigned long progress100();
+
+//     bool isActive();
+
+//     void setRemaining(unsigned long remaining);
+// };
 
 class MillisChronometer
 {

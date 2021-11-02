@@ -1,32 +1,34 @@
 #include <millis_utils.h>
 
-MillisTimer t1, delayTimer;
+MillisTimer t1, printTimer;
 
-char str[40];
+char str[100];
 void setup()
 {
 
-    Serial.begin(9600);
+    Serial.begin(115200);
 
-    // t1.set(20000, true);
-    delayTimer.start(1000, true);
-
-    t1.start(2000,true);
+    printTimer.setFrequency(4, true, true);
+    t1.start(2000, true);
+    
 }
 
 void loop()
 {
     readInput();
-    if (delayTimer)
+    if (printTimer)
     {
 
-            t1.check();
-            int status = t1.status();
-            snprintf(str, 40, "T: %lu  S: %u ", t1.remaining(),t1.status());
-            Serial.println(str);
-        
+        t1.check();
+        int status = t1.status();
 
-      
+        Serial.print("Reamining (ms) : ");
+        Serial.print(t1.remaining());
+        Serial.print(" Status : ");
+        Serial.println(t1.status());
+
+        // sprintf(str,"Remaining: %lu  Status: %u ", t1.remaining(),t1.status());
+        // Serial.println(str);
     }
 }
 
@@ -52,7 +54,6 @@ void readInput()
         }
         else if (c == 'r')
         {
-           
 
             t1.resume();
         }

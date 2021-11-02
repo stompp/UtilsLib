@@ -143,185 +143,206 @@ void printChronoTimeFor(unsigned long rawMillis, Stream *stream)
 #endif
 }
 
-MillisTimer::MillisTimer(/* args */)
+MillisTimer::MillisTimer() : TimerBase()
 {
-	_remaining = _timeSet = _before = _status = _loop = 0;
-}
-
-MillisTimer::MillisTimer(unsigned long ms, bool loop, bool start, bool triggerOnFirstCheck)
-{
-	set(ms, loop, start, triggerOnFirstCheck);
 }
 
 MillisTimer::~MillisTimer()
 {
 }
 
-bool MillisTimer::check()
+MillisTimer::MillisTimer(unsigned long t, bool loop, bool start, bool triggerOnFirstCheck) : TimerBase(t, loop, start, triggerOnFirstCheck)
+{
+}
+unsigned long MillisTimer::t_now()
+{
+	return millis();
+}
+unsigned long MillisTimer::frequency_to_period(double hertzs)
 {
 
-	if (_status < TIMER_PAUSED)
-		return false;
-
-	unsigned long n = millis();
-
-	if (_status == TIMER_ACTIVE)
-	{
-
-		unsigned long l = elapsedMillis(_before, n);
-		if (l >= _remaining)
-		{
-			if (_loop)
-			{
-				_remaining = _timeSet;
-			}
-			else
-			{
-				_remaining = 0;
-				_status = TIMER_STOPPED;
-			}
-			return true;
-		}
-		else
-		{
-			_remaining -= l;
-		}
-	}
-
-	_before = n;
-	return false;
+	return (unsigned long)(1000.0 / constrain(abs(hertzs), 0, 1000.0));
 }
 
-void MillisTimer::set(unsigned long ms, bool loop, bool start, bool triggerOnFirstCheck)
-{
-	_timeSet = _remaining = ms;
-	_loop = loop;
-	if (start)
-	{
-		_before = millis();
-		_status = TIMER_ACTIVE;
-	}
-	else
-	{
-		_status = TIMER_PAUSED;
-	}
-	if (triggerOnFirstCheck)
-		_remaining = 0;
-}
-
-void MillisTimer::setFrequency(double hertzs, bool start, bool triggerOnFristCheck)
-{
-
-	// turn freq into period and loop
-	// millis resolution is 1 so max frequency is 1000Hz
-	double h = constrain(abs(hertzs), 0.0, 1000.0);
-	// good idea?
-	unsigned long ms = (unsigned long)(1000.0 / h);
-
-	set(ms, true, start, triggerOnFristCheck);
-}
-
-void MillisTimer::start(unsigned long ms, bool loop, bool triggerOnFirstCheck)
-{
-	set(ms, loop, true, triggerOnFirstCheck);
-}
-
-// void MillisTimer::start(bool triggerOnFirstCheck)
+// MillisTimer::MillisTimer(/* args */)
 // {
-// 	set(_timeSet, _loop, true, triggerOnFirstCheck);
+// 	_remaining = _timeSet = _before = _status = _loop = 0;
 // }
-void MillisTimer::start()
-{
-	set(_timeSet, _loop, true, false);
-}
 
-void MillisTimer::startIn(unsigned long ms)
-{
-	start();
-	_remaining = ms;
-}
-void MillisTimer::stop()
-{
+// MillisTimer::MillisTimer(unsigned long ms, bool loop, bool start, bool triggerOnFirstCheck)
+// {
+// 	set(ms, loop, start, triggerOnFirstCheck);
+// }
 
-	if ((_status == TIMER_ACTIVE) || (_status == TIMER_PAUSED))
-	{
+// MillisTimer::~MillisTimer()
+// {
+// }
 
-		check();
-		_status = TIMER_STOPPED;
-	}
+// bool MillisTimer::check()
+// {
 
-	// _remaining = 0;
-}
+// 	if (_status < TIMER_PAUSED)
+// 		return false;
 
-void MillisTimer::pause(bool doPause)
-{
+// 	unsigned long n = millis();
 
-	if (_status < TIMER_PAUSED)
-	{
-		return;
-	}
+// 	if (_status == TIMER_ACTIVE)
+// 	{
 
-	if (doPause)
-	{
-		if (_status == TIMER_ACTIVE)
-		{
-			_status = TIMER_PAUSED;
-		}
-	}
-	else
-	{
-		if (_status == TIMER_PAUSED)
-			_status = TIMER_ACTIVE;
-	}
-}
+// 		unsigned long l = elapsedMillis(_before, n);
+// 		if (l >= _remaining)
+// 		{
+// 			if (_loop)
+// 			{
+// 				_remaining = _timeSet;
+// 			}
+// 			else
+// 			{
+// 				_remaining = 0;
+// 				_status = TIMER_STOPPED;
+// 			}
+// 			return true;
+// 		}
+// 		else
+// 		{
+// 			_remaining -= l;
+// 		}
+// 	}
 
-void MillisTimer::resume()
-{
-	pause(false);
-}
+// 	_before = n;
+// 	return false;
+// }
 
-// void MillisTimer::delay(unsigned long ms){
-// 	if(_status == TIMER_ACTIVE || _status == TIMER_PAUSED){
+// void MillisTimer::set(unsigned long ms, bool loop, bool start, bool triggerOnFirstCheck)
+// {
+// 	_timeSet = _remaining = ms;
+// 	_loop = loop;
+// 	if (start)
+// 	{
+// 		_before = millis();
+// 		_status = TIMER_ACTIVE;
+// 	}
+// 	else
+// 	{
+// 		_status = TIMER_PAUSED;
+// 	}
+// 	if (triggerOnFirstCheck)
+// 		_remaining = 0;
+// }
 
+// void MillisTimer::setFrequency(double hertzs, bool start, bool triggerOnFristCheck)
+// {
+
+// 	// turn freq into period and loop
+// 	// millis resolution is 1 so max frequency is 1000Hz
+// 	double h = constrain(abs(hertzs), 0.0, 1000.0);
+// 	// good idea?
+// 	unsigned long ms = (unsigned long)(1000.0 / h);
+
+// 	set(ms, true, start, triggerOnFristCheck);
+// }
+
+// void MillisTimer::start(unsigned long ms, bool loop, bool triggerOnFirstCheck)
+// {
+// 	set(ms, loop, true, triggerOnFirstCheck);
+// }
+
+// // void MillisTimer::start(bool triggerOnFirstCheck)
+// // {
+// // 	set(_timeSet, _loop, true, triggerOnFirstCheck);
+// // }
+// void MillisTimer::start()
+// {
+// 	set(_timeSet, _loop, true, false);
+// }
+
+// void MillisTimer::startIn(unsigned long ms)
+// {
+// 	start();
+// 	_remaining = ms;
+// }
+// void MillisTimer::stop()
+// {
+
+// 	if ((_status == TIMER_ACTIVE) || (_status == TIMER_PAUSED))
+// 	{
+
+// 		check();
+// 		_status = TIMER_STOPPED;
+// 	}
+
+// 	// _remaining = 0;
+// }
+
+// void MillisTimer::pause(bool doPause)
+// {
+
+// 	if (_status < TIMER_PAUSED)
+// 	{
+// 		return;
+// 	}
+
+// 	if (doPause)
+// 	{
+// 		if (_status == TIMER_ACTIVE)
+// 		{
+// 			_status = TIMER_PAUSED;
+// 		}
+// 	}
+// 	else
+// 	{
+// 		if (_status == TIMER_PAUSED)
+// 			_status = TIMER_ACTIVE;
 // 	}
 // }
-byte MillisTimer::status() { return _status; }
 
-unsigned long MillisTimer::remaining()
-{
-	return _remaining;
-}
+// void MillisTimer::resume()
+// {
+// 	pause(false);
+// }
 
-MillisTimer::operator bool()
-{
+// // void MillisTimer::delay(unsigned long ms){
+// // 	if(_status == TIMER_ACTIVE || _status == TIMER_PAUSED){
 
-	return check();
-}
+// // 	}
+// // }
+// byte MillisTimer::status() { return _status; }
 
-void MillisTimer::loopMode(bool loop)
-{
-	_loop = loop;
-}
+// unsigned long MillisTimer::remaining()
+// {
+// 	return _remaining;
+// }
 
-float MillisTimer::progress()
-{
-	return 1.0f - (float)_remaining / (float)_timeSet;
-}
+// MillisTimer::operator bool()
+// {
 
-unsigned long MillisTimer::progress100()
-{
-	return 100UL - 100UL * _remaining / _timeSet;
-}
+// 	return check();
+// }
 
-bool MillisTimer::isActive()
-{
-	return _status == TIMER_ACTIVE;
-}
+// void MillisTimer::loopMode(bool loop)
+// {
+// 	_loop = loop;
+// }
 
-void MillisTimer::setRemaining(unsigned long remaining)
-{
-	_remaining = remaining;
-}
+// float MillisTimer::progress()
+// {
+// 	return 1.0f - (float)_remaining / (float)_timeSet;
+// }
+
+// unsigned long MillisTimer::progress100()
+// {
+// 	return 100UL - 100UL * _remaining / _timeSet;
+// }
+
+// bool MillisTimer::isActive()
+// {
+// 	return _status == TIMER_ACTIVE;
+// }
+
+// void MillisTimer::setRemaining(unsigned long remaining)
+// {
+// 	_remaining = remaining;
+// }
 
 MillisChronometer::MillisChronometer(/* args */)
 {
@@ -368,7 +389,8 @@ void MillisChronometer::pause(bool doPause)
 	}
 	else if ((_status == TIMER_PAUSED) && !doPause)
 	{
-		update();
+		_before = millis();
+		// update();
 		_status = TIMER_ACTIVE;
 	}
 }
@@ -395,8 +417,14 @@ byte MillisChronometer::status()
 unsigned long MillisChronometer::update()
 {
 
-	if (_status < TIMER_PAUSED)
+	if (_status <= TIMER_PAUSED)
+	{
+		if (_status == TIMER_PAUSED)
+		{
+			_before = millis();
+		}
 		return _millis;
+	}
 
 	unsigned long n = millis();
 
@@ -413,5 +441,5 @@ unsigned long MillisChronometer::update()
 
 unsigned long MillisChronometer::value()
 {
-	return _millis;
+	return update();
 }

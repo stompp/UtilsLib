@@ -4,6 +4,24 @@
 // #include <stdint.h>
 #include <Arduino.h>
 #include <limits.h>
+#include <discrete_system.h>
+
+// Returns decimal part of float input
+double decimalPart(double x)
+{
+    return x - floor(x);
+}
+
+/** Returns the float remainder after dividing dividend by divisor
+ *  e.g. floatMod(5.0, 1.5) returns 0.5
+ *       floatMod(9.0, 3.5) returns 2.0
+ **/
+double floatMod(double dividend, double divisor)
+{
+
+    long n = dividend / divisor;
+    return dividend - ((double)n) * divisor;
+}
 
 /**
  * Modify a value @param v in @param dif quantity
@@ -12,23 +30,47 @@
  * otherwhise just the result will be returned.
  * /TODO check if type salad is needed
  */
-template <typename T, typename U, typename V, typename W>
-T dimValue(T &v, U dif, V min, W max, bool autoUpdate = true)
+template <typename T, typename U>
+T dimValue(T &value, U dif, T minV, T maxV, bool autoUpdate = true)
 {
-    T out;
-    if (dif < 0 && abs(dif) > v)
-        out = min;
+    T v = constrain(value,minV,maxV);
+
+    T out = v;
+    if (dif < 0 && (abs(dif) > (v - minV)))
+        out = minV;
+    else if (dif < 0)
+    {
+        out = v - (T)(abs(dif));
+    }
+    else if (((T)dif) >= (maxV - v))
+        out = maxV;
     else
-        out = constrain(v + dif, min, max);
+        out = v + (T)dif;
+        // out = constrain(v + (T)dif, minV, maxV);
 
     if (autoUpdate)
-        v = out;
+        value = out;
     return out;
 }
 
+// template <typename T, typename U, typename V, typename W>
+// T dimValue(T &v, U dif, V minV, W maxV, bool autoUpdate = true)
+// {
+//     T out;
+
+//     if (dif < 0 && (abs(dif) > (v - minV)))
+//         out = minV;
+//     else
+//         out = constrain(v + dif, minV, maxV);
+
+//     if (autoUpdate)
+//         v = out;
+//     return out;
+// }
+
 /**
  * Template map function. Same as map but for any type.
- * 
+ *
  */
 template <typename T>
 T mapT(T x, T in_min, T in_max, T out_min, T out_max)
@@ -71,7 +113,7 @@ T mapT(T x, T in_min, T in_max, T out_min, T out_max)
  * Maps a value @param x whose original range starts at @param xStart and ends at @param xEnd,
  * to @param yStart @param yEnd. Start values can be bigger than end values. Any direction mapping.
  * You can map a value in decreasing range into a value in increasing range or viceversa or both increasing or decreasing.
- * e.g x is 7 in range [10,0] output is in range [20,30] the result would be 23 
+ * e.g x is 7 in range [10,0] output is in range [20,30] the result would be 23
  * Maybe I have a countdown or decreament and I want this to be mapped to an increasement or any combination.
  */
 template <typename T>
@@ -99,7 +141,14 @@ T mapFromStartToEnd(T x, T xStart, T xEnd, T yStart, T yEnd)
     else if (xStart > xEnd)
     {
 
-        out = mapFromStartToEnd(yStart - x, (T)0, xStart - xEnd, yStart, yEnd);
+        if (yStart < yEnd){
+            out = mapT(xStart - x, (T)0,  xStart - xEnd ,yStart,yEnd);
+        }else if(yStart > yEnd){
+            d = yStart - yEnd;
+            out = yEnd + d - mapT(xStart - x, (T)0,  xStart - xEnd, (T)0, d);
+        }
+
+            // out = mapFromStartToEnd(xStart - x, (T)0, xStart - xEnd, yStart, yEnd);
     }
 
     return out;
@@ -113,15 +162,18 @@ template <typename T>
 T circleUpwardsDistance(T startV, T endV, T maxV)
 {
     T dif = 0;
-    T s = startV % (maxV + 1);
-    T e = endV % (maxV + 1);
+    // T s = startV % (maxV + 1);
+    // T e = endV % (maxV + 1);
+    T s = (T)floatMod(startV, (maxV + 1));
+    T e = (T)floatMod(endV, (maxV + 1));
     if (e >= s)
     {
         dif = e - s;
     }
     else
     {
-        dif = (maxV + (T)1) - s + e;
+        // dif = (maxV + (T)1) - s + e;
+        dif = maxV + e - s;
     }
     return dif;
 }
@@ -135,54 +187,66 @@ template <typename T>
 T circleDownwardsDistance(T startV, T endV, T maxV)
 {
     T dif = 0;
-    T s = startV % (maxV + 1);
-    T e = endV % (maxV + 1);
+    // T s = startV % (maxV + 1);
+    // T e = endV % (maxV + 1);
+    T s = (T)floatMod(startV, (maxV + 1));
+    T e = (T)floatMod(endV, (maxV + 1));
     if (s >= e)
     {
         dif = s - e;
     }
     else
     {
-        dif = (maxV + (T)1) + s - e;
+        // dif = maxV + (T)1 -e + s ;
+        dif = maxV + s - e;
     }
     return dif;
 }
 
 /**
- * Calculates the distance from @param startV to @param endV in an downwards circular way which circle max value is @param maxV
- * e.g startV is 20 endV is 80 maxV is 100 then output distance is 40
- * e.g startV is 80 endV is 20 maxV is 100 then output distance is 60
+ * Maps a linear value @param linePosition in range [ @param lineStart, @param lineEnd] into a circular ranged
+ * value going from 0 to @param circleMaxValue starting at @param circleStartValue and ending at @param circleEndValue
+ * running the minumun distance between both.
+ * e.g linePosition is 50 from 0 to 100
+ * circleStartValue is 80 circleEndValue is 20 circleMaxValue is 99 then result is 0
+ *  circleStartValue is 80 circleEndValue is 20 circleMaxValue is 100 then result is 100
  */
 template <typename T>
-T minumunDistanceCircularMap(T linePosition, T lineStart, T lineEnd, T startValue, T endValue, T maxValue)
+T minumunDistanceCircularMap(T linePosition, T lineStart, T lineEnd, T circleStartValue, T circleEndValue, T circleMaxValue)
 {
 
-    T out = endValue;
+    T out = circleEndValue;
 
     if (linePosition < lineEnd)
     {
 
-        T dd = circleDownwardsDistance(startValue, endValue, maxValue);
-        T ud = circleUpwardsDistance(startValue, endValue, maxValue);
-
+        T dd = circleDownwardsDistance(circleStartValue, circleEndValue, circleMaxValue);
+        // Serial.println(dd);
+        T ud = circleUpwardsDistance(circleStartValue, circleEndValue, circleMaxValue);
+        // Serial.println(ud);
         if (ud <= dd)
         {
 
-            out = floatMod((startValue + mapT(linePosition, lineStart, lineEnd, (T)0, ud)), (maxValue + 1));
-            // out = (startValue + mapT(linePosition, lineStart, lineEnd, (T)0, ud)) % (maxValue + 1);
+            if (circleStartValue <= circleEndValue)
+            {
+                out = mapT(linePosition, lineStart, lineEnd, circleStartValue, circleEndValue);
+            }
+            else
+                out = floatMod((circleStartValue + (T)1 + mapT(linePosition, lineStart, lineEnd, (T)0, ud)), (circleMaxValue + 1));
+            // out = (circleStartValue + mapT(linePosition, lineStart, lineEnd, (T)0, ud)) % (circleMaxValue + 1);
         }
         else
         {
 
-            if (startValue <= endValue)
+            if (circleStartValue <= circleEndValue)
             {
 
-                out = floatMod((endValue + dd - mapT(linePosition, lineStart, lineEnd, (T)0, dd)), (maxValue + 1));
-                // out = (endValue + dd - mapT(linePosition, lineStart, lineEnd, (T)0, dd)) % (maxValue + 1);
+                out = floatMod((circleEndValue + dd - mapT(linePosition, lineStart, lineEnd, (T)0, dd)), (circleMaxValue + 1));
+                // out = (circleEndValue + dd - mapT(linePosition, lineStart, lineEnd, (T)0, dd)) % (circleMaxValue + 1);
             }
             else
             {
-                out = startValue - mapT(linePosition, lineStart, lineEnd, (T)0, dd);
+                out = circleStartValue - mapT(linePosition, lineStart, lineEnd, (T)0, dd);
             }
         }
     }
@@ -190,7 +254,7 @@ T minumunDistanceCircularMap(T linePosition, T lineStart, T lineEnd, T startValu
     return out;
 }
 
-// uint16_t minumunDistanceCircularMap(unsigned long linePosition, unsigned long lineStart, unsigned long lineEnd, uint16_t startValue, uint16_t endValue, uint16_t maxValue)
+// uint16_t minumunDistanceCircularMap(unsigned long linePosition, unsigned long lineStart, unsigned long lineEnd, uint16_t startValue, uint16_t circleEndValue, uint16_t maxValue)
 // {
 
 //     uint16_t out = endValue;
@@ -286,6 +350,8 @@ public:
         {
 
             out = (T)mapFromStartToEnd((double)t, (double)this->startTime, (double)(this->startTime + transitionTime), (double)startV, (double)endV);
+            if(t >= (this->startTime + transitionTime))
+                out = endV;
         }
 
         this->endCheck(out, startV, endV, autoChangeStartV);
@@ -331,23 +397,6 @@ double amplitudDemodulation(double modulatedSignal, double carrier, double m)
     return ((modulatedSignal / carrier) - 1.0) / m;
 }
 
-// Returns decimal part of float input
-double decimalPart(double x)
-{
-    return x - floor(x);
-}
-
-/** Returns the float remainder after dividing dividend by divisor
- *  e.g. floatMod(5.0, 1.5) returns 0.5 
- *       floatMod(9.0, 3.5) returns 2.0
- **/
-double floatMod(double dividend, double divisor)
-{
-
-    long n = dividend / divisor;
-    return dividend - ((double)n) * divisor;
-}
-
 // Returns a given positive or negative phase in radians in range [0,TWO_PI)
 double normalizedPhase(double radians)
 {
@@ -385,7 +434,7 @@ double triangularWaveCycle(double x, double k = 0.5f)
         return 2 * x / (1 - k);
     else if (((1 - k) / 2 <= x) && (x < (1 + k) / 2))
         return (1 - 2 * x) / k;
-    //else if ((1 + k) / 2 <= x)
+    // else if ((1 + k) / 2 <= x)
     return 2 * (x - 1) / (1 - k);
 }
 
@@ -417,7 +466,7 @@ double squareWaveCycle(double x, double k = 0.5f)
     return -1.0;
 }
 
-//doubt
+// doubt
 double rectangularWaveCycle(double x, double k)
 {
     // if (x <= z || (z == 1.0f))
@@ -435,11 +484,11 @@ double rhomboidWaveCycle(double x, double k)
     double z = 0.5;
     if (x < (z * k))
         return x / (z * k);
-    else if ((z * k <= x) and (x < z * (1 - k)))
+    else if ((z * k <= x) && (x < z * (1 - k)))
         return 1.0;
-    else if ((z * (1 - k) <= x) and (x < z * (1 + k)))
+    else if ((z * (1 - k) <= x) && (x < z * (1 + k)))
         return (z * (1 + k) - x) / (z * k) - 1;
-    else if ((z * (1 + k) <= x) and (x < (1 - k * z)))
+    else if ((z * (1 + k) <= x) && (x < (1 - k * z)))
         return -1.0;
     // else if ((1 - z * k) <= x)
     return (x - 1) / (z * k);
@@ -483,149 +532,6 @@ double rhomboidWave(double phase, double k)
 {
     return rhomboidWaveCycle(phaseToCycleValue(phase), k);
 }
-
-#define DISCRETE_SYSTEM_CALC_MODE 0
-
-class DiscreteSystem
-{
-private:
-    static unsigned long _last_micros;
-    static unsigned long _remaining_micros;
-
-    static double _micros_period;
-
-    static double _sampleRate;
-    static unsigned long _n;
-
-    /* data */
-public:
-    DiscreteSystem(/* args */);
-    ~DiscreteSystem();
-
-    static bool tick()
-    {
-
-        unsigned long t = micros();
-        unsigned long ellapsed = t - _last_micros;
-
-        bool newSample = false;
-        if (ellapsed >= _remaining_micros)
-        {
-
-#if DISCRETE_SYSTEM_CALC_MODE == 1
-            unsigned long delay = ellapsed - _remaining_micros;
-            unsigned long overSamples = ellapsed / _micros_period;
-            unsigned long overLapDistance = ULONG_MAX - _n;
-            unsigned long sampleInc = 1 + overSamples;
-
-            if (overLapDistance <= sampleInc)
-            {
-                _n = systemLoopSample();
-            }
-
-            _n = _n + sampleInc;
-            delay -= (overSamples * _micros_period);
-            _remaining_micros = _micros_period - delay;
-#elif DISCRETE_SYSTEM_CALC_MODE == 0
-
-            if (_n == ULONG_MAX)
-                _n = systemLoopSample();
-            _n++;
-            _remaining_micros = _micros_period;
-#endif
-            newSample = true;
-        }
-        else
-        {
-            _remaining_micros -= ellapsed;
-        }
-
-        _last_micros = t;
-
-        return newSample;
-    }
-
-    static unsigned long systemSample()
-    {
-        return _n;
-    }
-    static unsigned long systemLoopSample()
-    {
-
-        return (_n % ((unsigned long)_sampleRate));
-    }
-
-    static double systemCycleValue()
-    {
-        return calcCycleValue(systemLoopSample());
-    }
-
-    static unsigned long loopSample(unsigned long sampleOffset)
-    {
-
-        return (systemLoopSample() + sampleOffset) % ((unsigned long)_sampleRate);
-    }
-
-    static double calcCycleValue(unsigned long sampleIndex)
-    {
-
-        return ((double)sampleIndex) / ((double)_sampleRate);
-    }
-
-    static double calcPhase(unsigned long sampleIndex)
-    {
-        return TWO_PI * calcCycleValue(sampleIndex);
-    }
-
-    static double loopCycleValue(unsigned long sampleOffset)
-    {
-        return calcCycleValue(loopSample(sampleOffset));
-    }
-    static double loopPhase(unsigned long sampleOffset)
-    {
-        return calcPhase(loopSample(sampleOffset));
-    }
-    static void setSampleRate(double sampleRate)
-    {
-
-        _sampleRate = sampleRate;
-        _micros_period = 1000000.0 / _sampleRate;
-    }
-
-    static void setSamplePeriod(double samplePeriod)
-    {
-        _sampleRate = 1.0 / samplePeriod;
-        _micros_period = 1000000.0 * samplePeriod;
-    }
-
-    static void start()
-    {
-        _n = 0;
-        _remaining_micros = _micros_period;
-        _last_micros = micros();
-    }
-
-    static void start(double sampleRate)
-    {
-        setSampleRate(sampleRate);
-        start();
-    }
-};
-
-DiscreteSystem::DiscreteSystem(/* args */)
-{
-}
-
-DiscreteSystem::~DiscreteSystem()
-{
-}
-
-unsigned long DiscreteSystem::_last_micros;
-unsigned long DiscreteSystem::_remaining_micros;
-double DiscreteSystem::_micros_period;
-double DiscreteSystem::_sampleRate;
-
-unsigned long DiscreteSystem::_n;
 
 // class WaveGenerator
 // {
@@ -671,13 +577,11 @@ public:
     static const uint8_t WHITE_NOISE = 8;
 
     uint8_t form;
-
     double freq;
     double amp;
     double phase0;
     double k;
     double offset;
-
     bool positive;
 
     static void tick();
@@ -715,6 +619,45 @@ public:
         phase0 = normalizedPhase(o_ph - ph);
 
         return phase();
+    }
+
+    double value(double ph)
+    {
+
+        double out = 0;
+
+        switch (form)
+        {
+        case SINE:
+            out = sin(ph);
+            break;
+        case TRIANGULAR:
+            out = triangularWave(ph, k);
+            break;
+        case SQUARE:
+            out = squareWave(ph, k);
+            break;
+        case SAWTOOTH:
+            out = sawtoothWave(ph);
+            break;
+        case PULSE:
+            out = pulseWave(ph, k);
+            break;
+        case RECTANGULAR:
+            out = rectangularWave(ph, k);
+            break;
+        case RHOMBOIDAL:
+            out = rhomboidWave(ph, k);
+        default:
+            break;
+        }
+
+        out *= amp;
+
+        if (positive)
+            out = positiveWave(out, amp);
+        out += offset;
+        return out;
     }
 
     double value()
