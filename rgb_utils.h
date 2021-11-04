@@ -4,7 +4,6 @@
 #include <Arduino.h>
 #include <math_utils.h>
 
-
 struct ColorTone
 {
     static const uint16_t red = 0;
@@ -44,7 +43,7 @@ struct RGBOutput
     uint16_t green;
     uint16_t blue;
 
-    void set(uint16_t r, uint16_t g, uint16_t b, uint16_t level = 1, uint16_t maxLevel = 1)
+    void set(uint16_t r, uint16_t g, uint16_t b, uint16_t level = 255, uint16_t maxLevel = 255)
     {
 
         red = ((r * level) / maxLevel);
@@ -60,7 +59,7 @@ struct RGBOutput
     {
         red = green = blue = 0;
     }
-    RGBOutput(uint16_t r, uint16_t g, uint16_t b, uint16_t level = 1, uint16_t maxLevel = 1)
+    RGBOutput(uint16_t r, uint16_t g, uint16_t b, uint16_t level = 255, uint16_t maxLevel = 255)
     {
         set(r, g, b, level, maxLevel);
     }
@@ -113,44 +112,31 @@ struct RGBOutput
         return max(red, max(green, blue));
     }
 
-    
-
     void setTemperature(uint16_t temperature, uint16_t brightness = 255, uint16_t maxBrightness = 255)
     {
-
-        // uint16_t b = (((uint16_t)100) * brightness) / maxBrightness;
-        // Kelvin2RGB k = Kelvin2RGB(temperature, b);
-        // red = k.Red;
-        // green = k.Green;
-        // blue = k.Blue;
-        // uint16_t b = (((uint16_t)100) * brightness) / maxBrightness;
         RGBOutput o = FROM_TEMPERATURE(temperature, brightness, maxBrightness);
         set(o);
     }
 
-    static RGBOutput FROM_TEMPERATURE(uint16_t temperature, uint16_t brightness = 255 , uint16_t maxBrightness = 255)
+    /** Based on Kelvin2RGB library code **/
+    static RGBOutput FROM_TEMPERATURE(uint16_t temperature, uint16_t brightness = 255, uint16_t maxBrightness = 255)
     {
 
         float temp = (constrain((float)temperature, 0.0, 65500.0)) / 100.0;
-        uint16_t br = constrain((((uint16_t)100) * brightness) / maxBrightness, 0, 100);
         RGBOutput o;
-
-        // red
+        // red & green
         float red = 255.0;
+        float green;
         if (temp > 66.0)
         {
             red = 329.698727466 * pow(temp - 60.0, -0.1332047592);
-        }
-        // green
-        float green;
-        if (temp <= 66.0)
-        {
-            green = (99.4708025861 * log(temp)) - 161.1195681661;
+            green = 288.1221695283 * pow(temp - 60.0, -0.0755148492);
         }
         else
         {
-            green = 288.1221695283 * pow(temp - 60.0, -0.0755148492);
+            green = (99.4708025861 * log(temp)) - 161.1195681661;
         }
+
         // blue
         float blue = 255.0;
         if (temp < 65.0)
@@ -166,9 +152,9 @@ struct RGBOutput
         }
 
         o.set(
-            map(br, 0, 100, 0, (uint16_t)constrain(red, 0, 255)),
-            map(br, 0, 100, 0, (uint16_t)constrain(green, 0, 255)),
-            map(br, 0, 100, 0, (uint16_t)constrain(blue, 0, 255)));
+            map(brightness, 0, maxBrightness, 0, (uint16_t)constrain(red, 0, 255)),
+            map(brightness, 0, maxBrightness, 0, (uint16_t)constrain(green, 0, 255)),
+            map(brightness, 0, maxBrightness, 0, (uint16_t)constrain(blue, 0, 255)));
         return o;
     }
 
@@ -211,9 +197,67 @@ struct RGBOutput
     {
         return progressTo(progress100, 0, 100, endV);
     }
+
+    static RGBOutput FROM_HSV(uint16_t hue, uint8_t saturation, uint8_t value)
+    {
+        float s = ((float)saturation) / 255.0;
+        float v = ((float)value) / 255.0;
+        float c = v * s;
+        float h = ((float)(hue%360)) / 60.0;
+        float x = c * (1 - abs(floatMod(h, 2) - 1));
+        float m = v - c;
+
+        float r, g, b;
+
+        if (h < 1.0)
+        {
+            r = c;
+            g = x;
+            b = 0;
+        }
+        else if (h < 2.0)
+        {
+            r = x;
+            g = c;
+            b = 0;
+        }
+        else if (h <  3.0)
+        {
+            r = 0;
+            g = c;
+            b = x;
+        }
+        else if (h < 4.0)
+        {
+            r = 0;
+            g = x;
+            b = c;
+        }
+        else if (h < 5.0)
+        {
+            r = x;
+            g = 0;
+            b = c;
+        }
+        else if (h < 6.0)
+        {
+            r = c;
+            g = 0;
+            b = x;
+        }
+
+        r += m;
+        g += m;
+        b += m;
+        // Serial.print(r);
+        // Serial.print(',');
+        // Serial.print(g);
+        // Serial.print(',');
+        // Serial.println(b);
+        RGBOutput o = RGBOutput((uint8_t)(255.0 * r), (uint8_t)(255.0 * g), (uint8_t)(255.0 * b));
+        return o;
+    }
 };
-
-
 
 class RGBTransition : public TimedInterpolationBase<RGBOutput>
 {
@@ -241,9 +285,6 @@ public:
 
         return out;
     }
-
- 
 };
-
 
 #endif
