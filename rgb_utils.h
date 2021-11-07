@@ -3,8 +3,22 @@
 
 #include <Arduino.h>
 #include <math_utils.h>
+#include <arduino_utils.h>
 
+#define RED 255, 0, 0
+#define ORANGE 255, 128, 0
+#define YELLOW 255, 255, 0
+#define YELLOW_GREEN 128, 255, 0
+#define GREEN 0, 255, 0
+#define BLUE_GREEN 0, 255, 128
+#define CYAN 0, 255, 255
+#define AZURE 0, 128, 255
+#define BLUE 0, 0, 255
+#define VIOLET 128, 0, 255
+#define MAGENTA 255, 0, 255
+#define WHITE 255, 255, 255
 struct ColorTone
+
 {
     static const uint16_t red = 0;
     static const uint16_t orange = 30;
@@ -37,6 +51,178 @@ struct ColorTone
     static const uint16_t blue_sky = 10000;
 };
 
+/** Based on Kelvin2RGB library code **/
+void temperature_to_rgb(uint16_t temperature, uint8_t brightness, uint8_t &red, uint8_t &green, uint8_t &blue)
+{
+    float temp = (constrain((float)temperature, 0.0, 65500.0)) / 100.0;
+
+    // red & green
+    float r = 255.0;
+    float g;
+    if (temp > 66.0)
+    {
+        r = 329.698727466 * pow(temp - 60.0, -0.1332047592);
+        g = 288.1221695283 * pow(temp - 60.0, -0.0755148492);
+    }
+    else
+    {
+        g = (99.4708025861 * log(temp)) - 161.1195681661;
+    }
+
+    // blue
+    float b = 255.0;
+    if (temp < 65.0)
+    {
+        if (temp <= 19.0)
+        {
+            b = 0;
+        }
+        else
+        {
+            b = (138.5177312231 * log(temp - 10.0)) - 305.0447927307;
+        }
+    }
+
+    red = map(brightness, 0, 255, 0, (uint8_t)constrain(r, 0, 255));
+    green = map(brightness, 0, 255, 0, (uint8_t)constrain(g, 0, 255));
+    blue = map(brightness, 0, 255, 0, (uint8_t)constrain(b, 0, 255));
+}
+
+/** From Wikipedia **/
+void hsv_to_rgb(uint16_t hue, uint8_t saturation, uint8_t value, uint8_t &red, uint8_t &green, uint8_t &blue)
+{
+    float s = ((float)saturation) / 255.0;
+    float v = ((float)value) / 255.0;
+    float c = v * s;
+    float h = ((float)(hue % 360)) / 60.0;
+    float x = c * (1 - abs(floatMod(h, 2) - 1));
+    float m = v - c;
+
+    float r, g, b;
+
+    if (h < 1.0)
+    {
+        r = c;
+        g = x;
+        b = 0;
+    }
+    else if (h < 2.0)
+    {
+        r = x;
+        g = c;
+        b = 0;
+    }
+    else if (h < 3.0)
+    {
+        r = 0;
+        g = c;
+        b = x;
+    }
+    else if (h < 4.0)
+    {
+        r = 0;
+        g = x;
+        b = c;
+    }
+    else if (h < 5.0)
+    {
+        r = x;
+        g = 0;
+        b = c;
+    }
+    else if (h < 6.0)
+    {
+        r = c;
+        g = 0;
+        b = x;
+    }
+
+    r += m;
+    g += m;
+    b += m;
+
+    red = (uint8_t)(255.0 * r);
+    green = (uint8_t)(255.0 * g);
+    blue = (uint8_t)(255.0 * b);
+}
+
+/** From Wikipedia **/
+void rgb_to_hsv(uint8_t red, uint8_t green, uint8_t blue, uint16_t &hue, uint8_t &saturation, uint8_t &value)
+{
+
+    uint8_t maxRGB = max(red, max(green, blue));
+    uint8_t minRGB = min(red, min(green, blue));
+
+    hue = 0;
+    saturation = 0;
+    value = maxRGB;
+
+    if (maxRGB != minRGB)
+    {
+        float r = ((float)red) / 255.0;
+        float g = ((float)green) / 255.0;
+        float b = ((float)blue) / 255.0;
+
+        float mx = ((float)maxRGB / 255.0);
+        float mn = ((float)minRGB / 255.0);
+        float diff = mx - mn;
+        // float h = 60.0 / inc;
+        float h = 60.0 / (diff);
+
+        if (maxRGB == red)
+        {
+          
+            h *= (g - b);
+            if (green < blue)
+            {
+                h += 360.0;
+            }
+          
+        }
+        else if (maxRGB == green)
+        {
+            h *= (b - r);
+            h += 120;
+        }
+        else if (maxRGB == blue)
+        {
+            h *= (r - g);
+            h += 240;
+        }
+
+        saturation = (uint8_t)(255 * (1 - mn / mx));
+        hue = h;
+        hue %= 360;
+    }
+}
+
+struct HSVOutput
+{
+    uint16_t hue;
+    uint8_t saturation;
+    uint8_t value;
+    HSVOutput()
+    {
+    }
+    HSVOutput(uint16_t h, uint8_t s, uint8_t v)
+    {
+        hue = h;
+        saturation = s;
+        value = v;
+    }
+
+    void debugConversion(uint8_t red, uint8_t green, uint8_t blue)
+    {
+
+        rgb_to_hsv(red, green, blue, hue, saturation, value);
+
+        char s[12];
+        snprintf_P(s, 12, PSTR("%03d,%03d,%03d"), red, green, blue);
+        debugValue("Origin RGB", s);
+        snprintf_P(s, 12, PSTR("%03d,%03d,%03d"), hue, saturation, value);
+        debugValue("Converted HSV", s);
+    }
+};
 struct RGBOutput
 {
     uint16_t red;
@@ -84,10 +270,7 @@ struct RGBOutput
         set(other);
     }
 
-    // void dim(uint16_t level, uint16_t maxLevel)
-    // {
-    //     set(red, green, blue, level, maxLevel);
-    // }
+   
 
     void maximize(uint16_t maxValue = 255)
     {
@@ -102,9 +285,7 @@ struct RGBOutput
             blue = ((blue * maxValue) / maxComponent) % (maxValue + 1);
         }
 
-        // red *= scale;
-        // green *= scale;
-        // blue *= scale;
+        
     }
 
     uint16_t brightness()
@@ -117,69 +298,6 @@ struct RGBOutput
         RGBOutput o = FROM_TEMPERATURE(temperature, brightness, maxBrightness);
         set(o);
     }
-
-    /** Based on Kelvin2RGB library code **/
-    static RGBOutput FROM_TEMPERATURE(uint16_t temperature, uint16_t brightness = 255, uint16_t maxBrightness = 255)
-    {
-
-        float temp = (constrain((float)temperature, 0.0, 65500.0)) / 100.0;
-        RGBOutput o;
-        // red & green
-        float red = 255.0;
-        float green;
-        if (temp > 66.0)
-        {
-            red = 329.698727466 * pow(temp - 60.0, -0.1332047592);
-            green = 288.1221695283 * pow(temp - 60.0, -0.0755148492);
-        }
-        else
-        {
-            green = (99.4708025861 * log(temp)) - 161.1195681661;
-        }
-
-        // blue
-        float blue = 255.0;
-        if (temp < 65.0)
-        {
-            if (temp <= 19.0)
-            {
-                blue = 0;
-            }
-            else
-            {
-                blue = (138.5177312231 * log(temp - 10.0)) - 305.0447927307;
-            }
-        }
-
-        o.set(
-            map(brightness, 0, maxBrightness, 0, (uint16_t)constrain(red, 0, 255)),
-            map(brightness, 0, maxBrightness, 0, (uint16_t)constrain(green, 0, 255)),
-            map(brightness, 0, maxBrightness, 0, (uint16_t)constrain(blue, 0, 255)));
-        return o;
-    }
-
-    // static RGBOutput FROM_TEMPERATURE(uint16_t temperature, uint16_t brightness, uint16_t maxBrightness = 100)
-    // {
-    //     RGBOutput o;
-    //     o.setTemperature(temperature, brightness, maxBrightness);
-    //     return o;
-    // }
-
-    static RGBOutput PROGRESSION(unsigned long progress, unsigned long progressStart, unsigned long progressEnd, RGBOutput startV, RGBOutput endV)
-    {
-        RGBOutput out;
-
-        out.red = mapFromStartToEnd(progress, progressStart, progressEnd, (unsigned long)startV.red, (unsigned long)endV.red);
-        out.green = mapFromStartToEnd(progress, progressStart, progressEnd, (unsigned long)startV.green, (unsigned long)endV.green);
-        out.blue = mapFromStartToEnd(progress, progressStart, progressEnd, (unsigned long)startV.blue, (unsigned long)endV.blue);
-        return out;
-    }
-
-    static RGBOutput PROGRESSION100(unsigned long progress100, RGBOutput startV, RGBOutput endV)
-    {
-        return PROGRESSION(progress100, 0, 100, startV, endV);
-    }
-
     RGBOutput progressTo(unsigned long progress, unsigned long progressStart, unsigned long progressEnd, RGBOutput endV)
     {
 
@@ -198,63 +316,33 @@ struct RGBOutput
         return progressTo(progress100, 0, 100, endV);
     }
 
+    static RGBOutput PROGRESSION(unsigned long progress, unsigned long progressStart, unsigned long progressEnd, RGBOutput startV, RGBOutput endV)
+    {
+        RGBOutput out;
+
+        out.red = mapFromStartToEnd(progress, progressStart, progressEnd, (unsigned long)startV.red, (unsigned long)endV.red);
+        out.green = mapFromStartToEnd(progress, progressStart, progressEnd, (unsigned long)startV.green, (unsigned long)endV.green);
+        out.blue = mapFromStartToEnd(progress, progressStart, progressEnd, (unsigned long)startV.blue, (unsigned long)endV.blue);
+        return out;
+    }
+
+    static RGBOutput PROGRESSION100(unsigned long progress100, RGBOutput startV, RGBOutput endV)
+    {
+        return PROGRESSION(progress100, 0, 100, startV, endV);
+    }
+    /** Based on Kelvin2RGB library code **/
+    static RGBOutput FROM_TEMPERATURE(uint16_t temperature, uint16_t brightness = 255, uint16_t maxBrightness = 255)
+    {
+        RGBOutput o;
+        temperature_to_rgb(temperature, brightness, (uint8_t &)o.red, (uint8_t &)o.green, (uint8_t &)o.blue);
+        return o;
+    }
+
+    
     static RGBOutput FROM_HSV(uint16_t hue, uint8_t saturation, uint8_t value)
     {
-        float s = ((float)saturation) / 255.0;
-        float v = ((float)value) / 255.0;
-        float c = v * s;
-        float h = ((float)(hue%360)) / 60.0;
-        float x = c * (1 - abs(floatMod(h, 2) - 1));
-        float m = v - c;
-
-        float r, g, b;
-
-        if (h < 1.0)
-        {
-            r = c;
-            g = x;
-            b = 0;
-        }
-        else if (h < 2.0)
-        {
-            r = x;
-            g = c;
-            b = 0;
-        }
-        else if (h <  3.0)
-        {
-            r = 0;
-            g = c;
-            b = x;
-        }
-        else if (h < 4.0)
-        {
-            r = 0;
-            g = x;
-            b = c;
-        }
-        else if (h < 5.0)
-        {
-            r = x;
-            g = 0;
-            b = c;
-        }
-        else if (h < 6.0)
-        {
-            r = c;
-            g = 0;
-            b = x;
-        }
-
-        r += m;
-        g += m;
-        b += m;
-        // Serial.print(r);
-        // Serial.print(',');
-        // Serial.print(g);
-        // Serial.print(',');
-        // Serial.println(b);
-        RGBOutput o = RGBOutput((uint8_t)(255.0 * r), (uint8_t)(255.0 * g), (uint8_t)(255.0 * b));
+        RGBOutput o;
+        hsv_to_rgb(hue, saturation, value, (uint8_t &)o.red, (uint8_t &)o.green, (uint8_t &)o.blue);
         return o;
     }
 };
