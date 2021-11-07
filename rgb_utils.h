@@ -171,13 +171,12 @@ void rgb_to_hsv(uint8_t red, uint8_t green, uint8_t blue, uint16_t &hue, uint8_t
 
         if (maxRGB == red)
         {
-          
+
             h *= (g - b);
             if (green < blue)
             {
                 h += 360.0;
             }
-          
         }
         else if (maxRGB == green)
         {
@@ -223,13 +222,14 @@ struct HSVOutput
         debugValue("Converted HSV", s);
     }
 };
-struct RGBOutput
+class RGBOutput
 {
-    uint16_t red;
-    uint16_t green;
-    uint16_t blue;
+public:
+    uint8_t red;
+    uint8_t green;
+    uint8_t blue;
 
-    void set(uint16_t r, uint16_t g, uint16_t b, uint16_t level = 255, uint16_t maxLevel = 255)
+    void set(uint8_t r, uint8_t g, uint8_t b, uint8_t level = 255, uint8_t maxLevel = 255)
     {
 
         red = ((r * level) / maxLevel);
@@ -245,7 +245,7 @@ struct RGBOutput
     {
         red = green = blue = 0;
     }
-    RGBOutput(uint16_t r, uint16_t g, uint16_t b, uint16_t level = 255, uint16_t maxLevel = 255)
+    RGBOutput(uint8_t r, uint8_t g, uint8_t b, uint8_t level = 255, uint8_t maxLevel = 255)
     {
         set(r, g, b, level, maxLevel);
     }
@@ -270,12 +270,10 @@ struct RGBOutput
         set(other);
     }
 
-   
-
-    void maximize(uint16_t maxValue = 255)
+    void maximize(uint8_t maxValue = 255)
     {
 
-        uint16_t maxComponent = brightness();
+        uint8_t maxComponent = brightness();
         // uint16_t scale = maxValue / maxComponent;
 
         if (maxComponent > 0)
@@ -284,16 +282,28 @@ struct RGBOutput
             green = ((green * maxValue) / maxComponent) % (maxValue + 1);
             blue = ((blue * maxValue) / maxComponent) % (maxValue + 1);
         }
-
-        
     }
 
-    uint16_t brightness()
+    uint8_t brightness()
     {
         return max(red, max(green, blue));
     }
 
-    void setTemperature(uint16_t temperature, uint16_t brightness = 255, uint16_t maxBrightness = 255)
+    unsigned long toInt()
+    {
+        unsigned long r = 0xff & red;
+        unsigned long g = 0xff & green;
+        unsigned long b = 0xff & blue;
+        return r | (g << 8) | (b << 16);
+    }
+    HSVOutput toHSV()
+    {
+        HSVOutput o;
+        rgb_to_hsv(red,green,blue,o.hue,o.saturation,o.value);
+        return o;
+    }
+
+    void setTemperature(uint16_t temperature, uint8_t brightness = 255, uint8_t maxBrightness = 255)
     {
         RGBOutput o = FROM_TEMPERATURE(temperature, brightness, maxBrightness);
         set(o);
@@ -331,14 +341,13 @@ struct RGBOutput
         return PROGRESSION(progress100, 0, 100, startV, endV);
     }
     /** Based on Kelvin2RGB library code **/
-    static RGBOutput FROM_TEMPERATURE(uint16_t temperature, uint16_t brightness = 255, uint16_t maxBrightness = 255)
+    static RGBOutput FROM_TEMPERATURE(uint16_t temperature, uint8_t brightness = 255, uint8_t maxBrightness = 255)
     {
         RGBOutput o;
         temperature_to_rgb(temperature, brightness, (uint8_t &)o.red, (uint8_t &)o.green, (uint8_t &)o.blue);
         return o;
     }
 
-    
     static RGBOutput FROM_HSV(uint16_t hue, uint8_t saturation, uint8_t value)
     {
         RGBOutput o;
