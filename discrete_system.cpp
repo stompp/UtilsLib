@@ -22,7 +22,7 @@ bool DiscreteSystem::tick()
 
 #if DISCRETE_SYSTEM_CALC_MODE == 1
         unsigned long delay = ellapsed - _remaining_micros;
-        unsigned long overSamples = ellapsed / _micros_period;
+        unsigned long overSamples = delay / _micros_period;
         // unsigned long overLapDistance = ULONG_MAX - _n;
         unsigned long sampleInc = 1 + overSamples;
 
@@ -70,13 +70,22 @@ bool DiscreteSystem::tick()
 
 unsigned long DiscreteSystem::systemSample()
 {
-    return _n + _seconds * _sampleRate;
+    return _n + (_seconds * _sampleRate);
 }
 unsigned long DiscreteSystem::systemLoopSample()
 {
 
     // return (_n % ((unsigned long)_sampleRate));
     return _n;
+}
+
+double DiscreteSystem::t()
+{
+    return double(systemSample())/(double(_sampleRate));
+}
+double DiscreteSystem::t(unsigned long sampleOffset)
+{
+     return double(systemSample() +sampleOffset)/(double(_sampleRate));
 }
 
 double DiscreteSystem::systemCycleValue()
@@ -109,27 +118,27 @@ double DiscreteSystem::loopPhase(unsigned long sampleOffset)
 {
     return calcPhase(loopSample(sampleOffset));
 }
-void DiscreteSystem::setSampleRate(double sampleRate)
+void DiscreteSystem::setSampleRate(unsigned long sampleRate)
 {
 
     _sampleRate = sampleRate;
     _micros_period = 1000000.0 / _sampleRate;
 }
 
-void DiscreteSystem::setSamplePeriod(double samplePeriod)
-{
-    _sampleRate = 1.0 / samplePeriod;
-    _micros_period = 1000000.0 * samplePeriod;
-}
+// void DiscreteSystem::setSamplePeriod(double samplePeriod)
+// {
+//     _sampleRate = 1.0 / samplePeriod;
+//     _micros_period = 1000000.0 * samplePeriod;
+// }
 
 void DiscreteSystem::start()
 {
     _n = 0;
-    _remaining_micros = (unsigned long)_micros_period;
+    _remaining_micros = _micros_period;
     _last_micros = micros();
 }
 
-void DiscreteSystem::start(double sampleRate)
+void DiscreteSystem::start(unsigned long sampleRate)
 {
     setSampleRate(sampleRate);
     start();

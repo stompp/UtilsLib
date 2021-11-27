@@ -4,14 +4,16 @@
 #include <Arduino.h>
 #include <limits.h>
 
-#define DISCRETE_SYSTEM_CALC_MODE 0
+#define DISCRETE_SYSTEM_CALC_MODE 1
 
 class DiscreteSystem
 {
 private:
 
     static unsigned long _last_micros;
+
     static unsigned long _remaining_micros;
+    
     static unsigned long _micros_period;
 
     static unsigned long _sampleRate;
@@ -22,7 +24,10 @@ private:
 
 
     static double _cycle_value;
+
     static double _phase;
+
+    
 
     /* data */
 public:
@@ -33,6 +38,8 @@ public:
     static unsigned long systemSample();
     static unsigned long systemLoopSample();
 
+    static double t();
+    static double t(unsigned long sampleOffset);
     static double systemCycleValue();
 
     static unsigned long loopSample(unsigned long sampleOffset);
@@ -43,14 +50,16 @@ public:
 
    
     static double loopCycleValue(unsigned long sampleOffset);
-    static double loopPhase(unsigned long sampleOffset);
-    static void setSampleRate(double sampleRate);
 
-    static void setSamplePeriod(double samplePeriod);
+    static double loopPhase(unsigned long sampleOffset);
+
+    static void setSampleRate(unsigned long sampleRate);
+
+    // static void setSamplePeriod(double samplePeriod);
 
     static void start();
 
-    static void start(double sampleRate);
+    static void start(unsigned long sampleRate);
 };
 
 #endif

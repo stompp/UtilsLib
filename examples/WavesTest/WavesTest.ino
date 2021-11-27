@@ -7,13 +7,14 @@ bool doPrint = true;
 int cicle = 0;
 int maxCicles = 1000;
 int waveForm = 0;
-
+const unsigned long sampleRate = 500;
+unsigned long lastTick = 0;
 Wave waveA;
 Wave waveB;
 
 double out;
 char mode = 'c';
-double amp = 1.0;
+double amp = 255.0;
 MillisTimer phaseSyncTimer;
 
 Wave carrier, signal;
@@ -28,7 +29,7 @@ MillisTimer readSerialTimer;
 void waves()
 {
 
-    if (readSerialTimer)
+    // if (readSerialTimer)
         wavesSerialInput();
 
     // if (sampleTimer)
@@ -36,10 +37,11 @@ void waves()
 
     unsigned long lastSample = DiscreteSystem::systemSample();
 
-    
     // DiscreteSystem::tick();
     if (DiscreteSystem::tick())
     {
+        unsigned long now_tick = micros();
+        out = 0;
         switch (mode)
         {
         case 'a':
@@ -57,26 +59,29 @@ void waves()
         case 'd':
             out = waveA.value() - waveB.value();
             break;
-        case 'c':
+        case 'f':
             out = waveA.value();
             break;
         default:
             break;
         }
 
-        if (mode == 'c')
-        {
-            unsigned long currentSample = DiscreteSystem::systemSample();
+        Serial.println(now_tick - lastTick);
+        lastTick = now_tick;
 
-            unsigned long sampleDiff = currentSample - lastSample;
-            Serial.println(sampleDiff);
-        }
-        else if (mode != 'f')
-        {
-            // Serial.print(amp * waveB.value(), 2);
-            // Serial.print(',');
-            Serial.println(amp * out, 2);
-        }
+        // if (mode == 'f')
+        // {
+        //     unsigned long currentSample = DiscreteSystem::systemSample();
+        //     unsigned long sampleDiff = currentSample - lastSample;
+        //     Serial.println(sampleDiff);
+
+        // }
+        // else 
+        // {
+        //     // Serial.print(amp * waveB.value(), 2);
+        //     // Serial.print(',');
+        //     Serial.println(amp * out, 2);
+        // }
     }
 }
 
@@ -105,16 +110,25 @@ void waveTests2()
 int wavesSerialInput()
 {
 
-    int c = Serial.read();
-    if (c != -1)
-    {
-
-        if (c == 'h')
+    if(Serial.available()){
+        int c = Serial.read();
+        if (c != -1)
         {
-            waveA.freq = Serial.parseFloat();
+
+            if (c == 'h')
+            {
+                waveA.setFrequency(Serial.parseFloat());
+          
+            }else if(c == 'k'){
+                waveA.k = Serial.parseFloat();
+            }else if(c == 't'){
+                waveA.form = Serial.parseInt();
+            }else if(c == 'm'){
+                  mode = (char)Serial.read(); 
+            }
+            // else if (mode != (char)c)
+            //     mode = (char)c;
         }
-        else if (mode != (char)c)
-            mode = (char)c;
     }
 }
 
@@ -129,7 +143,7 @@ void modulationTest()
 
     if (sampleTimer)
     {
-        Wave::tick();
+        Wave::LOOP();
         double out = amplitudeModulation(signal.value(), carrier.value(), m);
 
         Serial.print(amplitudDemodulation(out, carrier.value(), m));
@@ -151,17 +165,19 @@ void discreteSystemTest()
 void setup()
 {
 
-    Serial.begin(2000000);
+    Serial.begin(115200);
 
-    Serial.println("{!!}");
+    // Serial.println("{!!}");
     // sampleTimer.start(5, true, true);
     // waveTimer.start(1000, true);
     // phaseSyncTimer.start(5000);
 
-    DiscreteSystem::start(5000);
+    DiscreteSystem::start(sampleRate);
+    lastTick = micros();
+
     // Wave::tick();
 
-    waveA = Wave(499, Wave::SINE, 0);
+    waveA = Wave(20, Wave::SAWTOOTH, 0);
     waveB = Wave(1, Wave::PULSE, 0);
 
     // carrier = Wave(100, Wave::SINE, 0);

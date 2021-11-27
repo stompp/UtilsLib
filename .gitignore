@@ -1,2 +1,4 @@
 examples/MathTests/.vscode/arduino.json
 examples/MathTests/.vscode/c_cpp_properties.json
+examples/DiscreteSystemTest/.vscode/arduino.json
+examples/DiscreteSystemTest/.vscode/c_cpp_properties.json
