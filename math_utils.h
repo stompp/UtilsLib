@@ -376,14 +376,18 @@ public:
     }
 };
 
+/** Amplitude modulation function **/
 double amplitudeModulation(double signal, double carrier, double m);
 
 /** fake **/
 double amplitudDemodulation(double modulatedSignal, double carrier, double m);
+
 // Returns a given positive or negative phase in radians in range [0,TWO_PI)
 double normalizedPhase(double radians);
+
 // Returns a given phase in radians in range [0,1)
 double phaseToCycleValue(double phase);
+
 // Maps a wave value in range [-amplitude,amplitude] to range [0,amplitude]
 double positiveWave(double rangeMinus11Value, double amplitude = 1.0);
 
@@ -394,6 +398,7 @@ double positiveWave(double rangeMinus11Value, double amplitude = 1.0);
 double triangularWaveCycle(double x, double k = 0.5f);
 
 double sawtoothWaveCycle(double x);
+
 double inverseSawtoothWaveCycle(double x);
 
 double pulseWaveCycle(double x, double k);
@@ -412,6 +417,8 @@ double sawtoothWave(double phase);
 
 double inverseSawtoothWave(double phase);
 
+
+
 double pulseWave(double phase, double k);
 
 double rectangularWave(double phase, double k);
@@ -420,37 +427,51 @@ double squareWave(double phase, double k = 0.5);
 
 double rhomboidWave(double phase, double k);
 
+// mine
+double sinPulseWave(double phase, double k = 0.5f);
+
 
 #define USE_DISCRETE_SYSTEM 1
 
 class Wave
 {
 private:
+
+#if USE_DISCRETE_SYSTEM == 1
+  unsigned long _n_offset;
+#else
     static unsigned long _sys_millis;
-
     unsigned long _millis;
+    staticbool _sys_init = false;
+#endif
 
-    unsigned long _n_offset;
+    void init();
+    
 
 public:
+    static const uint8_t NONE = 0;
     static const uint8_t SINE = 1;
     static const uint8_t TRIANGULAR = 2;
     static const uint8_t SQUARE = 3;
     static const uint8_t SAWTOOTH = 4;
-    static const uint8_t PULSE = 5;
-    static const uint8_t RECTANGULAR = 6;
-    static const uint8_t RHOMBOIDAL = 7;
-    static const uint8_t WHITE_NOISE = 8;
+    static const uint8_t INVERSE_SAWTOOTH = 5;
+    static const uint8_t PULSE = 6;
+    static const uint8_t RECTANGULAR = 7;
+    static const uint8_t RHOMBOIDAL = 8;
+    static const uint8_t WHITE_NOISE = 9;
+    static const uint8_t SINE_PULSE = 10;
+
 
     uint8_t form;
-    double freq;
+    // double freq;
     double amp;
+    double w;
     double phase0;
     double k;
     double offset;
     bool positive;
 
-    static void tick();
+    static void LOOP();
 
     Wave();
     Wave(double frequency, uint8_t form, double ph0);
@@ -458,6 +479,8 @@ public:
 
     ~Wave();
 
+    void setFrequency(double frequency);
+    double getFrequency();
     double t();
 
     double wt();
@@ -466,11 +489,29 @@ public:
 
     double phaseSync(Wave other);
 
-    double value(double ph);
+    double value(double ph,double kk = 0.5);
 
     double value();
 
+
     static Wave SINE_WAVE(double frequency, double initialPhase);
 };
+
+// class ValueAnimation : public Wave
+// {
+// private:
+//     /* data */
+// public:
+//     ValueAnimation : Wave(/* args */);
+//     ~ValueAnimation :Wave();
+// };
+
+// ValueAnimation :Wave::ValueAnimation :Wave(/* args */)
+// {
+// }
+
+// ValueAnimation :Wave::~ValueAnimation :Wave()
+// {
+// }
 
 #endif

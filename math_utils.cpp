@@ -1,8 +1,6 @@
 // #include "math_utils.h"
 
 #include "math_utils.h"
-unsigned long Wave::_sys_millis;
-
 
 // Returns decimal part of float input
 double decimalPart(double x)
@@ -149,6 +147,18 @@ double inverseSawtoothWave(double phase)
     return -sawtoothWave(phase);
 }
 
+double sinPulseWave(double phase, double k)
+{
+
+    double kph = TWO_PI * k;
+
+    if ((phase > kph) || (k == 0))
+    {
+        return 0;
+    }
+
+    return sin(normalizedPhase(phase / (2.0 * k)));
+}
 double pulseWave(double phase, double k)
 {
 
@@ -170,23 +180,30 @@ double rhomboidWave(double phase, double k)
     return rhomboidWaveCycle(phaseToCycleValue(phase), k);
 }
 
-
-
+void Wave::init()
+{
+#if USE_DISCRETE_SYSTEM == 1
+    _n_offset = DiscreteSystem::systemLoopSample();
+#else
+    if(_sys_init == false){
+        _sys_millis = millis();
+        _sys_init = true;
+    }
+    _millis = _sys_millis;
+#endif
+}
 Wave::Wave()
 {
-
-    _millis = _sys_millis;
-
-    _n_offset = DiscreteSystem::systemLoopSample();
+    init();
+   
 }
 Wave::Wave(double frequency, uint8_t waveForm, double ph0)
 {
-    _millis = _sys_millis;
 
-    _n_offset = DiscreteSystem::systemLoopSample();
+     init();
 
     form = waveForm;
-    freq = frequency;
+    setFrequency(frequency);
     phase0 = ph0;
 
     k = 0.5f;
@@ -197,12 +214,11 @@ Wave::Wave(double frequency, uint8_t waveForm, double ph0)
 }
 Wave::Wave(double frequency, uint8_t waveForm, double param, double ph0)
 {
-    _millis = _sys_millis;
-
-    _n_offset = DiscreteSystem::systemLoopSample();
+     init();
+    _n_offset = DiscreteSystem::systemSample();
 
     form = waveForm;
-    freq = frequency;
+    setFrequency(frequency);
     phase0 = ph0;
     k = param;
 
@@ -213,7 +229,7 @@ Wave::Wave(double frequency, uint8_t waveForm, double param, double ph0)
 Wave::~Wave()
 {
 }
-void Wave::tick()
+void Wave::LOOP()
 {
 #if USE_DISCRETE_SYSTEM == 1
     DiscreteSystem::tick();
@@ -225,15 +241,23 @@ void Wave::tick()
 double Wave::t()
 {
 #if USE_DISCRETE_SYSTEM == 1
-    return DiscreteSystem::loopCycleValue(_n_offset);
+    // return DiscreteSystem::loopCycleValue(_n_offset);
+    return DiscreteSystem::t(_n_offset);
 #else
     return ((double)(_sys_millis - _millis)) / 1000.0;
 #endif
 }
-
+void Wave::setFrequency(double frequency)
+{
+    w = TWO_PI * abs(frequency);
+}
+double Wave::getFrequency()
+{
+    return w / TWO_PI;
+}
 double Wave::wt()
 {
-    return TWO_PI * freq * t();
+    return w * t();
 }
 
 double Wave::phase()
@@ -251,7 +275,7 @@ double Wave::phaseSync(Wave other)
     return phase();
 }
 
-double Wave::value(double ph)
+double Wave::value(double ph, double kk)
 {
 
     double out = 0;
@@ -262,22 +286,32 @@ double Wave::value(double ph)
         out = sin(ph);
         break;
     case TRIANGULAR:
-        out = triangularWave(ph, k);
+        out = triangularWave(ph, kk);
         break;
     case SQUARE:
-        out = squareWave(ph, k);
+        out = squareWave(ph, kk);
         break;
     case SAWTOOTH:
         out = sawtoothWave(ph);
         break;
+    case INVERSE_SAWTOOTH:
+        out = inverseSawtoothWave(ph);
+        break;
     case PULSE:
-        out = pulseWave(ph, k);
+        out = pulseWave(ph, kk);
         break;
     case RECTANGULAR:
-        out = rectangularWave(ph, k);
+        out = rectangularWave(ph, kk);
         break;
     case RHOMBOIDAL:
-        out = rhomboidWave(ph, k);
+        out = rhomboidWave(ph, kk);
+        break;
+    case WHITE_NOISE:
+        out = ((float)random(1000)) / 1000.0;
+        break;
+    case SINE_PULSE:
+        out = sinPulseWave(ph, kk);
+        break;
     default:
         break;
     }
@@ -293,39 +327,7 @@ double Wave::value(double ph)
 double Wave::value()
 {
 
-    double out = 0;
-
-    switch (form)
-    {
-    case SINE:
-        out = sin(phase());
-        break;
-    case TRIANGULAR:
-        out = triangularWave(phase(), k);
-        break;
-    case SQUARE:
-        out = squareWave(phase(), k);
-        break;
-    case SAWTOOTH:
-        out = sawtoothWave(phase());
-        break;
-    case PULSE:
-        out = pulseWave(phase(), k);
-        break;
-    case RECTANGULAR:
-        out = rectangularWave(phase(), k);
-        break;
-    case RHOMBOIDAL:
-        out = rhomboidWave(phase(), k);
-    default:
-        break;
-    }
-    out *= amp;
-
-    if (positive)
-        out = positiveWave(out, amp);
-    out += offset;
-    return out;
+    return value(phase(), k);
 }
 
 Wave Wave::SINE_WAVE(double frequency, double initialPhase)
