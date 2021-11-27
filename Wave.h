@@ -4,6 +4,10 @@
 #include <discrete_system.h>
 
 #define USE_DISCRETE_SYSTEM 0
+
+#if USE_DISCRETE_SYSTEM == 1 
+#include <discrete_system.h>
+#else
 #define WAVE_TIME_MODE 0
 
 #if WAVE_TIME_MODE == 0
@@ -11,6 +15,8 @@
 #elif WAVE_TIME_MODE == 1
 #define WAVE_TIME_SCALE 1000000.0
 #endif
+#endif
+
 class Wave
 {
 private:
