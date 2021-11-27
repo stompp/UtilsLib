@@ -2,7 +2,7 @@
 #define _DISCRETE_SYSTEM_H_
 
 #include <Arduino.h>
-#include <limits.h>
+
 
 #define DISCRETE_SYSTEM_CALC_MODE 1
 
@@ -34,6 +34,7 @@ public:
     DiscreteSystem(/* args */);
     ~DiscreteSystem();
 
+
     static bool tick();
     static unsigned long systemSample();
     static unsigned long systemLoopSample();
@@ -48,10 +49,12 @@ public:
 
     static double calcPhase(unsigned long sampleIndex);
 
-   
     static double loopCycleValue(unsigned long sampleOffset);
 
     static double loopPhase(unsigned long sampleOffset);
+
+    /** [0,1] **/
+    static double loopTime(unsigned long sampleOffset);
 
     static void setSampleRate(unsigned long sampleRate);
 

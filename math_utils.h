@@ -4,6 +4,7 @@
 // #include <stdint.h>
 #include <Arduino.h>
 #include <limits.h>
+#include <math.h>
 #include <discrete_system.h>
 
 // Returns decimal part of float input
@@ -20,12 +21,12 @@ double floatMod(double dividend, double divisor);
  * but always keeping in range @param min @param max.
  * if @param autoUpdate is true @param v will be modified and returned
  * otherwhise just the result will be returned.
- * /TODO check if type salad is needed
+ * TODO check if type salad is needed
  */
 template <typename T, typename U>
 T dimValue(T &value, U dif, T minV, T maxV, bool autoUpdate = true)
 {
-    T v = constrain(value,minV,maxV);
+    T v = constrain(value, minV, maxV);
 
     T out = v;
     if (dif < 0 && (abs(dif) > (v - minV)))
@@ -38,7 +39,7 @@ T dimValue(T &value, U dif, T minV, T maxV, bool autoUpdate = true)
         out = maxV;
     else
         out = v + (T)dif;
-        // out = constrain(v + (T)dif, minV, maxV);
+    // out = constrain(v + (T)dif, minV, maxV);
 
     if (autoUpdate)
         value = out;
@@ -133,14 +134,17 @@ T mapFromStartToEnd(T x, T xStart, T xEnd, T yStart, T yEnd)
     else if (xStart > xEnd)
     {
 
-        if (yStart < yEnd){
-            out = mapT(xStart - x, (T)0,  xStart - xEnd ,yStart,yEnd);
-        }else if(yStart > yEnd){
+        if (yStart < yEnd)
+        {
+            out = mapT(xStart - x, (T)0, xStart - xEnd, yStart, yEnd);
+        }
+        else if (yStart > yEnd)
+        {
             d = yStart - yEnd;
-            out = yEnd + d - mapT(xStart - x, (T)0,  xStart - xEnd, (T)0, d);
+            out = yEnd + d - mapT(xStart - x, (T)0, xStart - xEnd, (T)0, d);
         }
 
-            // out = mapFromStartToEnd(xStart - x, (T)0, xStart - xEnd, yStart, yEnd);
+        // out = mapFromStartToEnd(xStart - x, (T)0, xStart - xEnd, yStart, yEnd);
     }
 
     return out;
@@ -342,7 +346,7 @@ public:
         {
 
             out = (T)mapFromStartToEnd((double)t, (double)this->startTime, (double)(this->startTime + transitionTime), (double)startV, (double)endV);
-            if(t >= (this->startTime + transitionTime))
+            if (t >= (this->startTime + transitionTime))
                 out = endV;
         }
 
@@ -417,8 +421,6 @@ double sawtoothWave(double phase);
 
 double inverseSawtoothWave(double phase);
 
-
-
 double pulseWave(double phase, double k);
 
 double rectangularWave(double phase, double k);
@@ -431,87 +433,5 @@ double rhomboidWave(double phase, double k);
 double sinPulseWave(double phase, double k = 0.5f);
 
 
-#define USE_DISCRETE_SYSTEM 1
-
-class Wave
-{
-private:
-
-#if USE_DISCRETE_SYSTEM == 1
-  unsigned long _n_offset;
-#else
-    static unsigned long _sys_millis;
-    unsigned long _millis;
-    staticbool _sys_init = false;
-#endif
-
-    void init();
-    
-
-public:
-    static const uint8_t NONE = 0;
-    static const uint8_t SINE = 1;
-    static const uint8_t TRIANGULAR = 2;
-    static const uint8_t SQUARE = 3;
-    static const uint8_t SAWTOOTH = 4;
-    static const uint8_t INVERSE_SAWTOOTH = 5;
-    static const uint8_t PULSE = 6;
-    static const uint8_t RECTANGULAR = 7;
-    static const uint8_t RHOMBOIDAL = 8;
-    static const uint8_t WHITE_NOISE = 9;
-    static const uint8_t SINE_PULSE = 10;
-
-
-    uint8_t form;
-    // double freq;
-    double amp;
-    double w;
-    double phase0;
-    double k;
-    double offset;
-    bool positive;
-
-    static void LOOP();
-
-    Wave();
-    Wave(double frequency, uint8_t form, double ph0);
-    Wave(double frequency, uint8_t form, double param, double ph0);
-
-    ~Wave();
-
-    void setFrequency(double frequency);
-    double getFrequency();
-    double t();
-
-    double wt();
-
-    double phase();
-
-    double phaseSync(Wave other);
-
-    double value(double ph,double kk = 0.5);
-
-    double value();
-
-
-    static Wave SINE_WAVE(double frequency, double initialPhase);
-};
-
-// class ValueAnimation : public Wave
-// {
-// private:
-//     /* data */
-// public:
-//     ValueAnimation : Wave(/* args */);
-//     ~ValueAnimation :Wave();
-// };
-
-// ValueAnimation :Wave::ValueAnimation :Wave(/* args */)
-// {
-// }
-
-// ValueAnimation :Wave::~ValueAnimation :Wave()
-// {
-// }
 
 #endif

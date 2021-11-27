@@ -1,7 +1,7 @@
 
 #include <millis_utils.h>
 #include <math_utils.h>
-
+#include <Wave.h>
 MillisTimer waveTimer, sampleTimer;
 bool doPrint = true;
 int cicle = 0;
@@ -26,18 +26,18 @@ unsigned int n = 0;
 unsigned int maxSamples = MAX_SAMPLES;
 double samples[MAX_SAMPLES];
 MillisTimer readSerialTimer;
+
 void waves()
 {
 
     // if (readSerialTimer)
-        wavesSerialInput();
+    wavesSerialInput();
 
     // if (sampleTimer)
     // {
 
     unsigned long lastSample = DiscreteSystem::systemSample();
 
-    // DiscreteSystem::tick();
     if (DiscreteSystem::tick())
     {
         unsigned long now_tick = micros();
@@ -66,8 +66,9 @@ void waves()
             break;
         }
 
-        Serial.println(now_tick - lastTick);
-        lastTick = now_tick;
+        // Serial.print(now_tick - lastTick);
+        // Serial.print(',');
+        // lastTick = now_tick;
 
         // if (mode == 'f')
         // {
@@ -76,13 +77,16 @@ void waves()
         //     Serial.println(sampleDiff);
 
         // }
-        // else 
+        // else
         // {
         //     // Serial.print(amp * waveB.value(), 2);
         //     // Serial.print(',');
-        //     Serial.println(amp * out, 2);
+        // Serial.println(amp * out, 2);
         // }
+
+         Serial.println(amp * out);
     }
+   
 }
 
 void waveTests2()
@@ -110,7 +114,8 @@ void waveTests2()
 int wavesSerialInput()
 {
 
-    if(Serial.available()){
+    if (Serial.available())
+    {
         int c = Serial.read();
         if (c != -1)
         {
@@ -118,13 +123,18 @@ int wavesSerialInput()
             if (c == 'h')
             {
                 waveA.setFrequency(Serial.parseFloat());
-          
-            }else if(c == 'k'){
+            }
+            else if (c == 'k')
+            {
                 waveA.k = Serial.parseFloat();
-            }else if(c == 't'){
+            }
+            else if (c == 't')
+            {
                 waveA.form = Serial.parseInt();
-            }else if(c == 'm'){
-                  mode = (char)Serial.read(); 
+            }
+            else if (c == 'm')
+            {
+                mode = (char)Serial.read();
             }
             // else if (mode != (char)c)
             //     mode = (char)c;
@@ -167,6 +177,7 @@ void setup()
 
     Serial.begin(115200);
 
+    
     // Serial.println("{!!}");
     // sampleTimer.start(5, true, true);
     // waveTimer.start(1000, true);
