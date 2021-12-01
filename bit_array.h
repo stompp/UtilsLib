@@ -7,42 +7,12 @@
 #include "Arduino.h"
 #endif
 
-// uint8_t bit_endian_swap(uint8_t in)
-// {
-// 	uint8_t out = 0;
-// 	// uint8_t n, m;
-// 	// for (n = 0, m = 7; n < 8,m >=0; n++,m--)
-// 	// {
-// 	// 	bitWrite(out,n,bitRead(in,m));
-// 	// }
-
-// 	for(uint8_t n = 0 ; n < 8 ;n++){
-// 		uint8_t b = bitRead(in,7-n);
-// 		Serial.println(b);
-// 		if(b){
-// 			bitSet(out,n);
-// 		}
-	
-// 		// bitWrite(out,n,b);
-// 	}
-// 	return out;
-// }
-
 unsigned long bit_endian_swap(unsigned long in,uint8_t nBytes = 1)
 {
 	unsigned long out = 0;
-	// uint8_t n, m;
-	// uint8_t endN = 8*nBytes;
-	// for (n = 0, m =  8*nBytes - 1; n < 8,m >=0; n++,m--)
-	// {
-	// 	bitWrite(out,n,bitRead(in,m));
-	// }
-
 	uint16_t lastBit = (8*nBytes) - 1;
-
 	for(uint8_t n = 0 ; n <= lastBit ;n++){
 		uint8_t b = bitRead(in,lastBit-n);
-		//Serial.println(b);
 		if(b){
 			bitSet(out,n);
 		}

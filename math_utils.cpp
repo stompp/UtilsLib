@@ -55,7 +55,7 @@ double phaseToCycleValue(double phase)
 // Maps a wave value in range [-amplitude,amplitude] to range [0,amplitude]
 double positiveWave(double rangeMinus11Value, double amplitude)
 {
-    return (rangeMinus11Value + amplitude) / 2.0;
+    return (rangeMinus11Value + amplitude) / 2.0*amplitude;
 }
 
 /**
@@ -149,15 +149,15 @@ double inverseSawtoothWave(double phase)
 
 double sinPulseWave(double phase, double k)
 {
-
+    double nph = normalizedPhase(phase);
     double kph = TWO_PI * k;
 
-    if ((phase > kph) || (k == 0))
+    if ((nph> kph) || (k == 0))
     {
         return 0;
     }
 
-    return sin(normalizedPhase(phase / (2.0 * k)));
+    return sin((nph / (2.0 * k)));
 }
 double pulseWave(double phase, double k)
 {

@@ -1,20 +1,22 @@
 #ifndef _WAVE_H_
 #define _WAVE_H_
 #include <math_utils.h>
-#include <discrete_system.h>
 
-#define USE_DISCRETE_SYSTEM 0
+#ifndef USE_DISCRETE_SYSTEM
 
-#if USE_DISCRETE_SYSTEM == 1 
-#include <discrete_system.h>
-#else
-#define WAVE_TIME_MODE 0
-
-#if WAVE_TIME_MODE == 0
-#define WAVE_TIME_SCALE 1000.0
-#elif WAVE_TIME_MODE == 1
-#define WAVE_TIME_SCALE 1000000.0
+#define USE_DISCRETE_SYSTEM 1
 #endif
+
+#if USE_DISCRETE_SYSTEM == 1
+    #include <discrete_system.h>
+#else
+    #define WAVE_TIME_MODE 0
+
+    #if WAVE_TIME_MODE == 0
+        #define WAVE_TIME_SCALE 1000.0
+        #elif WAVE_TIME_MODE == 1
+        #define WAVE_TIME_SCALE 1000000.0
+        #endif
 #endif
 
 class Wave
@@ -27,7 +29,11 @@ private:
 
     static bool _sys_init;
     unsigned long _time_offset;
+
 #endif
+
+    bool holding;
+    double holding_phase;
 
     void init();
 
@@ -57,7 +63,7 @@ public:
     double offset;
     bool positive;
 
-    static void LOOP();
+    static bool LOOP();
 
     Wave();
     Wave(double frequency, uint8_t form, double ph0);
@@ -68,16 +74,17 @@ public:
     void setFrequency(double frequency);
     double getFrequency();
     double t();
+    double n_phase();
     double phase();
-
+    double phaseSync(double  other);
     double phaseSync(Wave other);
 
-    double value(double ph, double kk = 0.5);
+    double value(double ph, double param = 0.5);
 
     double value();
 
-    static Wave SINE_WAVE(double frequency, double initialPhase);
+    void hold(bool do_hold);
+    // static Wave SINE_WAVE(double frequency, double initialPhase);
 };
-
 
 #endif

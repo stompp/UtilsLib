@@ -1,4 +1,4 @@
-#include "Wave.h"
+#include <Wave.h>
 
 
 #if USE_DISCRETE_SYSTEM == 0
@@ -22,7 +22,10 @@ void Wave::init()
 }
 Wave::Wave()
 {
+  
     init();
+    
+    amp = 1;
 }
 Wave::Wave(double frequency, uint8_t waveForm, double ph0)
 {
@@ -55,24 +58,25 @@ Wave::Wave(double frequency, uint8_t waveForm, double param, double ph0)
 Wave::~Wave()
 {
 }
-void Wave::LOOP()
+bool Wave::LOOP()
 {
 #if USE_DISCRETE_SYSTEM == 1
-    DiscreteSystem::tick();
+    return DiscreteSystem::tick();
 #else
     #if WAVE_TIME_MODE == 0
         _sys_time = millis();
     #else
         _sys_time = micros();
     #endif
+    return true;
 #endif
 }
 
 double Wave::_t()
 {
 #if USE_DISCRETE_SYSTEM == 1
-    return DiscreteSystem::loopCycleValue(_n_offset);
-    // return DiscreteSystem::t(_n_offset);
+    // return DiscreteSystem::loopCycleValue(_n_offset);
+    return DiscreteSystem::t(_n_offset);
 #else
     return ((double)(_sys_time - _time_offset)) / WAVE_TIME_SCALE;
 #endif
@@ -102,19 +106,31 @@ double Wave::_wt()
     return w * _t();
 }
 
-double Wave::phase()
+double Wave::n_phase()
 {
     return normalizedPhase(_wt() + phase0);
 }
 
-double Wave::phaseSync(Wave other)
+double Wave::phase()
 {
-    double o_ph = other.phase();
-    double ph = normalizedPhase(_wt());
-
-    phase0 = normalizedPhase(o_ph - ph);
+    return (_wt() + phase0);
+}
+double Wave::phaseSync(double  other){
+    // double ph = normalizedPhase(_wt());
+    phase0 = normalizedPhase(other - _wt());
 
     return phase();
+}
+double Wave::phaseSync(Wave other)
+{
+    return phaseSync(other.phase());
+
+    // double o_ph = other.phase();
+    // double ph = normalizedPhase(_wt());
+
+    // phase0 = normalizedPhase(o_ph - ph);
+
+    // return phase();
 }
 
 double Wave::value(double ph, double kk)
@@ -158,10 +174,13 @@ double Wave::value(double ph, double kk)
         break;
     }
 
-    out *= amp;
+   
 
-    if (positive)
-        out = positiveWave(out, amp);
+    if (positive){
+         out = positiveWave(out);
+    }
+       
+    out *= amp;
     out += offset;
     return out;
 }
@@ -169,10 +188,27 @@ double Wave::value(double ph, double kk)
 double Wave::value()
 {
 
+if(holding){
+    return value(holding_phase);
+}
     return value(phase(), k);
 }
+ void Wave::hold(bool do_hold){
 
-Wave Wave::SINE_WAVE(double frequency, double initialPhase)
-{
-    return Wave(frequency, SINE, initialPhase);
-}
+     if(holding){
+         if(!do_hold){
+             phaseSync(holding_phase);
+         }
+     }else{
+         if(do_hold){
+             holding_phase = phase();
+            
+         }
+
+     }
+     holding = do_hold;
+ }
+// Wave Wave::SINE_WAVE(double frequency, double initialPhase)
+// {
+//     return Wave(frequency, SINE, initialPhase);
+// }

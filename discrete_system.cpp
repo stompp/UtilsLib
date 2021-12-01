@@ -64,11 +64,11 @@ unsigned long DiscreteSystem::systemLoopSample()
 
 double DiscreteSystem::t()
 {
-    return double(systemSample())/(double(_sampleRate));
+    return double(systemSample()) / (double(_sampleRate));
 }
 double DiscreteSystem::t(unsigned long sampleOffset)
 {
-     return double(systemSample() +sampleOffset)/(double(_sampleRate));
+    return double(systemSample() + sampleOffset) / (double(_sampleRate));
 }
 
 double DiscreteSystem::systemCycleValue()
@@ -101,9 +101,10 @@ double DiscreteSystem::loopPhase(unsigned long sampleOffset)
 {
     return calcPhase(loopSample(sampleOffset));
 }
- double DiscreteSystem::loopTime(unsigned long sampleOffset){
-     return ((double)(( _n + sampleOffset)%_sampleRate))/((double)_sampleRate);
- }
+double DiscreteSystem::loopTime(unsigned long sampleOffset)
+{
+    return ((double)((_n + sampleOffset) % _sampleRate)) / ((double)_sampleRate);
+}
 void DiscreteSystem::setSampleRate(unsigned long sampleRate)
 {
 
@@ -128,6 +129,11 @@ void DiscreteSystem::start(unsigned long sampleRate)
 {
     setSampleRate(sampleRate);
     start();
+}
+
+unsigned long DiscreteSystem::lastMicros()
+{
+    return _last_micros;
 }
 unsigned long DiscreteSystem::_last_micros;
 unsigned long DiscreteSystem::_remaining_micros;
