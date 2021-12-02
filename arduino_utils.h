@@ -18,6 +18,7 @@
 #endif
 #include <avr/pgmspace.h>
 #include <limits.h>
+#include <math_utils.h>
 
 #define containsBit(value, bitvalue) ((value & bitvalue) == bitvalue);
 

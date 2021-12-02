@@ -276,53 +276,6 @@ void debugFreeRam(Stream* p){
 
 }
 
-/** Get the result of rasing \c base to \c exponent */
-unsigned long pow2(uint8_t  exponent){
-//	long result = 1;
-//	while(exponent-- > 0) result*=base;
-//	return result;
-	return bit(exponent);
-}
-/** Get the result of rasing \c base to \c exponent */
-long powLong(long base, long exponent){
-//	long result = 1;
-//	while(exponent-- > 0) result*=base;
-//	return result;
-	return (exponent == 0) ? 1: base*powLong(base,--exponent);
-}
-/** Get the result of rasing \c base to \c exponent */
-unsigned long powULong(unsigned long base, unsigned long exponent){
-
-//	unsigned long result = 1;
-//	while(exponent-- > 0) result*=base;
-//	return result;
-
-	return (exponent == 0) ? 1: base*powLong(base,--exponent);
-}
-
-/** Check if \c value is power of \c base */
-bool isPowerOf(long value,long base){
-	// zero is power of no number
-	if ((value == 0) || (base == 1)) return false;
-	// one is power of every number raised to 0
-	if(value == 1) return true;
-	return (value%base == 0 ? isPowerOf(value/base,base) : false);
-}
-
-/** Check if \c value is power of 2 */
-bool isPowerOf2(long value){return (value != 0) && ((value & (value - 1)) == 0);}
-
-/** Check if \c x is even */
-bool isEven(long x){return x%2 == 0;}
-
-/** Check if \c x is odd */
-bool isOdd(long x){return x%2 > 0;}
-
-unsigned long ul_plus_l(unsigned long ul, long l){
-
-
-	return (l < 0) ? (ul - (unsigned long)(-l)) : (ul + (unsigned long)l) ;
-}
 
 /**Get the number of elements in \c s delimited by \c delimiter */
 int getCSVElementsLength(const char* s, char delimiter){
