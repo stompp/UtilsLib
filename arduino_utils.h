@@ -118,24 +118,8 @@ void debug(T s) { Serial.println(s); }
 
 void debugFreeRam(Stream *p = &Serial);
 
-/** Get the result of rasing \c base to \c exponent */
-long powLong(long base, long exponent);
-/** Get the result of rasing \c base to \c exponent */
-unsigned long powULong(unsigned long base, unsigned long exponent);
 
-/** Check if \c value is power of \c base */
-bool isPowerOf(long value, long base);
 
-/** Check if \c value is power of 2 */
-bool isPowerOf2(long value);
-
-/** Check if \c x is even */
-bool isEven(long x);
-
-/** Check if \c x is odd */
-bool isOdd(long x);
-
-unsigned long ul_plus_l(unsigned long ul, long l);
 
 /**Get the number of elements in \c s delimited by \c delimiter */
 int getCSVElementsLength(const char *s, char delimiter = ',');

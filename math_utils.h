@@ -6,6 +6,29 @@
 
 #include <math.h>
 
+/** Get the result of rasing \c base to \c exponent */
+long powLong(long base, long exponent);
+/** Get the result of rasing \c base to \c exponent */
+unsigned long powULong(unsigned long base, unsigned long exponent);
+
+/** Check if \c value is power of \c base */
+bool isPowerOf(long value, long base);
+
+/** Check if \c value is power of 2 */
+bool isPowerOf2(long value);
+
+/** Check if \c x is even */
+bool isEven(long x);
+
+/** Check if \c x is odd */
+bool isOdd(long x);
+/** Unsigned long and long safe sum */
+unsigned long ul_plus_l(unsigned long ul, long l);
+
+/** Sign function, returns the sign -1, 1 of the value **/
+float sign(float v);
+/** Returns true if the value is positive **/
+bool isPositive(float f);
 
 // Returns decimal part of float input
 double decimalPart(double x);
