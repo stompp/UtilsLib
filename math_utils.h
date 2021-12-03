@@ -86,7 +86,6 @@ T dimValue(T &value, U dif, T minV, T maxV, bool autoUpdate = true)
 
 /**
  * Template map function. Same as map but for any type.
- *
  */
 template <typename T>
 T mapT(T x, T in_min, T in_max, T out_min, T out_max)
@@ -94,46 +93,14 @@ T mapT(T x, T in_min, T in_max, T out_min, T out_max)
     return (x - in_min) * (out_max - out_min) / (in_max - in_min) + out_min;
 }
 
-// template <typename T>
-// T mapFromStartToEnd(unsigned long x, unsigned long xStart, unsigned long xEnd, T yStart, T yEnd)
-// {
-
-//     T out = yEnd;
-//     T d;
-
-//     if (xStart < xEnd)
-//     {
-//         if (yStart < yEnd)
-//         {
-
-//             d = yEnd - yStart;
-//             out = yStart + map(x, xStart, xEnd, 0, d);
-//         }
-//         else if (yStart > yEnd)
-//         {
-//             d = yStart - yEnd;
-
-//             out = yEnd + d - map(x, xStart, xEnd, 0, d);
-//         }
-//     }
-//     else if (xStart > xEnd)
-//     {
-
-//         out = mapFromStartToEnd(yStart - x, 0, xStart - xEnd, yStart, yEnd);
-//     }
-
-//     return out;
-// }
-
 /**
- * Maps a value @param x whose original range starts at @param xStart and ends at @param xEnd,
- * to @param yStart @param yEnd. Start values can be bigger than end values. Any direction mapping.
- * You can map a value in decreasing range into a value in increasing range or viceversa or both increasing or decreasing.
+ * Interpolates a value @param x whose original range starts at @param xStart and ends at @param xEnd,
+ * into a new range @param yStart @param yEnd. Start values can be bigger than end values. Any direction interpolation.
+ * You can interpolate a value in decreasing range into a value in increasing range or viceversa or anyway.
  * e.g x is 7 in range [10,0] output is in range [20,30] the result would be 23
- * Maybe I have a countdown or decreament and I want this to be mapped to an increasement or any combination.
  */
 template <typename T>
-T mapFromStartToEnd(T x, T xStart, T xEnd, T yStart, T yEnd)
+T interpolate(T x, T xStart, T xEnd, T yStart, T yEnd)
 {
 
     T out = yEnd;
@@ -167,11 +134,12 @@ T mapFromStartToEnd(T x, T xStart, T xEnd, T yStart, T yEnd)
             out = yEnd + d - mapT(xStart - x, (T)0, xStart - xEnd, (T)0, d);
         }
 
-        // out = mapFromStartToEnd(xStart - x, (T)0, xStart - xEnd, yStart, yEnd);
+       
     }
 
     return out;
 }
+
 /**
  * Calculates the distance from @param startV to @param endV in an upwards circular way which circle max value is @param maxV
  * e.g startV is 20 endV is 80 maxV is 100 then output distance is 60
@@ -368,7 +336,7 @@ public:
         if (this->canCalculate(startV, endV))
         {
 
-            out = (T)mapFromStartToEnd((double)t, (double)this->startTime, (double)(this->startTime + transitionTime), (double)startV, (double)endV);
+            out = (T)interpolate((double)t, (double)this->startTime, (double)(this->startTime + transitionTime), (double)startV, (double)endV);
             if (t >= (this->startTime + transitionTime))
                 out = endV;
         }
