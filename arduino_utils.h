@@ -110,12 +110,12 @@ void debugValue(String n, T v,Print *p = &Serial)
 
 
 template <typename T>
-void print(T s) { Serial.print(s); }
+void print(T s, Stream &stream = Serial) { stream.print(s); }
 template <typename T>
-void println(T s) { Serial.println(s); }
+void println(T s,Stream &stream = Serial) { stream.println(s); }
 
 template <typename T>
-void debug(T s) { Serial.println(s); }
+void debug(T s,Stream &stream = Serial) { stream.println(s); }
 
 void debugFreeRam(Stream *p = &Serial);
 
