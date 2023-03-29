@@ -30,7 +30,8 @@ bool TimerBase::check()
         {
             if (_loop)
             {
-                _remaining = _timeSet;
+                // _remaining = _timeSet;
+                start();
             }
             else
             {

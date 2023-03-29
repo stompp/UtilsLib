@@ -7,20 +7,40 @@
 #include "Arduino.h"
 #endif
 
-unsigned long bit_endian_swap(unsigned long in,uint8_t nBytes = 1)
+// unsigned long bit_endian_swap(unsigned long in, uint8_t nBytes = 1)
+// {
+// 	unsigned long out = 0;
+// 	uint16_t lastBit = (8 * nBytes) - 1;
+// 	for (uint8_t n = 0; n <= lastBit; n++)
+// 	{
+// 		uint8_t b = bitRead(in, lastBit - n);
+// 		if (b)
+// 		{
+// 			bitSet(out, n);
+// 		}
+// 	}
+
+// 	return out;
+// }
+
+template <typename T>
+T bit_endian_swap(T in)
 {
-	unsigned long out = 0;
-	uint16_t lastBit = (8*nBytes) - 1;
-	for(uint8_t n = 0 ; n <= lastBit ;n++){
-		uint8_t b = bitRead(in,lastBit-n);
-		if(b){
-			bitSet(out,n);
+
+	T out = 0;
+	long lastBit = (8 * sizeof(T)) - 1;
+	
+	for (long n = lastBit; n > -1 ; n--)
+	{
+		uint8_t b = bitRead(in, n);
+		
+		if (b)
+		{
+			bitSet(out, lastBit -n);
 		}
 	}
 
 	return out;
-
-	
 }
 
 class BitArray

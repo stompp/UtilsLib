@@ -42,7 +42,7 @@ double floatMod(double dividend, double divisor);
 /**
  * Modify a value @param v in @param dif quantity
  * but always keeping in range @param min @param max.
- * if @param autoUpdate is true @param v will be modified and returned
+ * if @param autoUpdate is true @param v will be modified as returned
  * otherwhise just the result will be returned.
  * TODO check if type salad is needed
  */
@@ -133,8 +133,6 @@ T interpolate(T x, T xStart, T xEnd, T yStart, T yEnd)
             d = yStart - yEnd;
             out = yEnd + d - mapT(xStart - x, (T)0, xStart - xEnd, (T)0, d);
         }
-
-       
     }
 
     return out;
@@ -290,7 +288,7 @@ public:
         startTime = 0;
     }
 
-    void reset()
+    virtual void reset()
     {
         active = false;
     }
@@ -346,6 +344,55 @@ public:
         return out;
     }
 };
+
+template <typename T>
+class TimedLinearInterpolator : public TimedLinearInterpolation<T>
+{
+
+public:
+    T target;
+    T prev;
+    unsigned long durationMs;
+    bool autoChangeSV = true;
+    T value()
+    {
+        return TimedLinearInterpolation<T>::value(prev, target, durationMs, autoChangeSV);
+    }
+
+    void init(T initValue, unsigned long ms)
+    {
+    }
+
+    virtual void reset()
+    {
+        this->reset();
+        prev = target;
+    }
+};
+
+// template <typename T>
+// class TimedLinearValueInterpolation : public TimedLinearInterpolation<T>
+// {
+
+// public:
+
+//     T prev;
+//     T target;
+//     unsigned long duration;
+//     bool autoUpdate;
+
+//     T value(){
+//         return this->value(prev,target,duration,autoUpdate);
+//     }
+
+//     void reset(T p, T t){
+//         prev = p;
+//         target = t;
+//        TimedLinearInterpolation::reset();
+
+//     }
+
+// };
 
 template <typename T>
 class TimedMinimunDistanceCircularInterpolation : public TimedInterpolationBase<T>
@@ -423,6 +470,5 @@ double rhomboidWave(double phase, double k);
 // mine
 double sinPulseWave(double phase, double k = 0.5f);
 
-
-
+float gap_calc(float maxV, float levels);
 #endif

@@ -2,7 +2,7 @@
 #ifndef _millis_utils_h_
 #define _millis_utils_h_
 
-#include <Arduino.h>
+// #include <Arduino.h>
 #include "timer_base.h"
 // #if ARDUINO < 100
 // #include "WProgram.h"
@@ -17,11 +17,11 @@
 #define MILLIS_PER_HOUR 3600000UL
 #define MILLIS_PER_DAY 86400000UL
 
-#define MILLIS 0x00
-#define SECONDS 0x01
-#define MINUTES 0x02
-#define HOURS 0x03
-#define DAYS 0x04
+// #define MU_MILLIS 0x00
+// #define MU_SECONDS 0x01
+// #define MU_MINUTES 0x02
+// #define MU_HOURS 0x03
+// #define MU_DAYS 0x04
 
 static const unsigned long MILLIS_PER[] = {1, MILLIS_PER_SECOND, MILLIS_PER_MINUTE, MILLIS_PER_HOUR, MILLIS_PER_DAY};
 

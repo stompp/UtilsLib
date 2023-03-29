@@ -172,7 +172,8 @@ void printFormattedEFloat(float number, Stream *stream = &Serial);
 //	 return eFloat;
 //
 //}
-
+void blink(uint8_t pin,int times, int timeOn, int timeOff = -1);
+void rblink(uint8_t pin,int times, int timeOn, int timeOff = -1);
 void beep(uint8_t pin, unsigned long delayms, int nivel);
 
 void beeps(uint8_t pin, int total, unsigned long delayms, int nivel);
@@ -245,5 +246,24 @@ String getPGMString(PGM_P progString);
 uint32_t print_pgm_str(PGM_P progString, Print *p = &Serial);
 
 uint32_t print_pgm_strln(PGM_P progString, Print *p = &Serial);
+
+
+
+template <class T>
+void execute(T func)
+{
+    if (func)
+    {
+        func();
+    }
+}
+template <class T, class U>
+void execute(T func, U a)
+{
+    if (func)
+    {
+        func(a);
+    }
+}
 
 #endif /* ARDUINO_UTILS_H_ */

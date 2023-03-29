@@ -34,7 +34,10 @@ bool millisReached(unsigned long nextMillis, unsigned long nowMillis)
 	return (nowMillis >= nextMillis);
 }
 /** Check if \c intervalMillis ellapsed since \c lastRecordMillis */
-bool millisOver(unsigned long lastRecordMillis, unsigned long intervalMillis) { return millisReached(lastRecordMillis + intervalMillis); }
+bool millisOver(unsigned long lastRecordMillis, unsigned long intervalMillis) { 
+	// return millisReached(lastRecordMillis + intervalMillis); 
+	return ((millis() -  lastRecordMillis) >= intervalMillis);
+	}
 
 /** Gets elapsed millis from sinceMillis to indicated nowMillis  */
 unsigned long elapsedMillis(unsigned long sinceMillis, unsigned long nowMillis)
@@ -56,7 +59,7 @@ unsigned long elapsedMillis(unsigned long sinceMillis, unsigned long nowMillis)
 	// return elapsed;
 }
 
-/** Gets full millis since sinceMillis to now millis()  indicated */
+/** Gets  millis since sinceMillis to now   */
 unsigned long millisSinceMS(unsigned long sinceMillis)
 {
 	return elapsedMillis(sinceMillis, millis());
@@ -143,6 +146,11 @@ void printChronoTimeFor(unsigned long rawMillis, Stream *stream)
 #endif
 }
 
+unsigned long MillisTimer::t_now()
+{
+	return millis();
+}
+
 MillisTimer::MillisTimer() : TimerBase()
 {
 }
@@ -150,14 +158,15 @@ MillisTimer::MillisTimer() : TimerBase()
 MillisTimer::~MillisTimer()
 {
 }
+// MillisTimer::MillisTimer(unsigned long t, bool loop, bool start, bool triggerOnFirstCheck) : TimerBase(t, loop, start, triggerOnFirstCheck)
+// {
 
-MillisTimer::MillisTimer(unsigned long t, bool loop, bool start, bool triggerOnFirstCheck) : TimerBase(t, loop, start, triggerOnFirstCheck)
+// }
+MillisTimer::MillisTimer(unsigned long t, bool loop, bool start, bool triggerOnFirstCheck) 
 {
+	 set(t, loop, start, triggerOnFirstCheck);
 }
-unsigned long MillisTimer::t_now()
-{
-	return millis();
-}
+
 unsigned long MillisTimer::frequency_to_period(double hertzs)
 {
 

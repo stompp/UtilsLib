@@ -430,7 +430,24 @@ void printFormattedEFloat(float number,Stream *stream){
 //
 //}
 
-
+void blink(uint8_t pin,int times,int timeOn, int timeOff){
+	// pinMode(pin,OUTPUT);
+	for(int n = 0 ; n < times ; n++){
+		digitalWrite(pin,HIGH);
+		delay(timeOn);
+		digitalWrite(pin,LOW);
+		delay(timeOff == -1 ? timeOn : timeOff);
+	}
+}
+void rblink(uint8_t pin,int times,int timeOn, int timeOff){
+	// pinMode(pin,OUTPUT);
+	for(int n = 0 ; n < times ; n++){
+		digitalWrite(pin,LOW);
+		delay(timeOn);
+		digitalWrite(pin,HIGH);
+		delay(timeOff == -1 ? timeOn : timeOff);
+	}
+}
 void beep(uint8_t pin,unsigned long delayms,int nivel)
 /**
  * Beep en el buzz
@@ -543,5 +560,6 @@ uint32_t print_pgm_str(PGM_P progString,Print *p){
 uint32_t print_pgm_strln(PGM_P progString,Print *p){
 	return p->println(getPGMString(progString));
 }
+
 
 
