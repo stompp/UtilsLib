@@ -1,6 +1,6 @@
 #ifndef _waves_h_
 #define _waves_h_
-#include <math_utils.h>
+#include "math_utils.h"
 
 
 class WaveBase
