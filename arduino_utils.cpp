@@ -1,16 +1,54 @@
-#include <avr/pgmspace.h>
+// #include <avr/pgmspace.h>
 #include "arduino_utils.h"
 
-//void initPins(const uint8_t* pins,uint8_t size,uint8_t mode){
-//	for(uint8_t n = 0; n < size ; n++) pinMode(pins[n],mode);
-//}
-//void initOutputs(const uint8_t* pins,uint8_t size){
-//	initPins(pins,size,OUTPUT);
-//}
-//void initInputs(const uint8_t* pins,uint8_t size){
-//	initPins(pins,size,INPUT);
-//}
 
+
+/**Get the number of elements in \c s delimited by \c delimiter */
+int getCSVElementsLength(const char* s, char delimiter){
+
+	char c;
+	int p,n;
+	n = 1;
+	while((c = s[p]) != '\0') if(s[p++] == delimiter) n++;
+	return n;
+}
+
+int charsFor(unsigned long value){
+
+	int length = 1;
+	unsigned long max = 10;
+	while((max < value) && (length < 10)){
+		length++;
+		max *= 10;
+	}
+
+	return length;
+}
+int charsFor(long value){
+
+	unsigned long x = (unsigned long)abs(value);
+	int length = charsFor(x);
+	if(value < 0) length++;
+
+	return length;
+
+
+}
+/** Get integer and decimal part of float \c value with a decimal resolution as indicated on \c digits */
+FloatParts getFloatParts(float value, int digits){
+
+	FloatParts p;
+	float x = value;
+	// integer/ part
+	p.integer = x;
+	// decimal part
+	x = abs(x - (float)p.integer);
+	p.decimal = ((pow(10,1 + digits)*x) + 5)/10;
+	while(p.decimal > 0 && (p.decimal%10 == 0)) p.decimal /=  10;
+	return p;
+}
+
+#ifdef ARDUINO
 
 /**
  * Get free RAM. Taken from the net
@@ -49,40 +87,6 @@ bool freeRamAvailable(int bytes){
 }
 
 
-int charsFor(unsigned long value){
-
-	int length = 1;
-	unsigned long max = 10;
-	while((max < value) && (length < 10)){
-		length++;
-		max *= 10;
-	}
-
-	return length;
-}
-int charsFor(long value){
-
-	unsigned long x = (unsigned long)abs(value);
-	int length = charsFor(x);
-	if(value < 0) length++;
-
-	return length;
-
-
-}
-/** Get integer and decimal part of float \c value with a decimal resolution as indicated on \c digits */
-FloatParts getFloatParts(float value, int digits){
-
-	FloatParts p;
-	float x = value;
-	// integer/ part
-	p.integer = x;
-	// decimal part
-	x = abs(x - (float)p.integer);
-	p.decimal = ((pow(10,1 + digits)*x) + 5)/10;
-	while(p.decimal > 0 && (p.decimal%10 == 0)) p.decimal /=  10;
-	return p;
-}
 
 /** Concat \c x float number string representation into \s string with a decimal resolution as indicated on \c digits */
 void concatFloat(String &s,float x,int digits){
@@ -276,16 +280,6 @@ void debugFreeRam(Stream* p){
 
 }
 
-
-/**Get the number of elements in \c s delimited by \c delimiter */
-int getCSVElementsLength(const char* s, char delimiter){
-
-	char c;
-	int p,n;
-	n = 1;
-	while((c = s[p]) != '\0') if(s[p++] == delimiter) n++;
-	return n;
-}
 /**Get the number of elements in \c s delimited by \c delimiter */
 int getCSVElementsLength(String &s, char delimiter){
 	return getCSVElementsLength(s.c_str(),delimiter);
@@ -430,6 +424,37 @@ void printFormattedEFloat(float number,Stream *stream){
 //
 //}
 
+void concatPGMString(PGM_P progString, String &st){
+	char *s = (char*)malloc(strlen_P(progString)+1);
+	strcpy_P(s,progString);
+	st.concat(s);
+	free(s);
+}
+void getPGMString(PGM_P progString, String &st){
+	char *s = (char*)malloc(strlen_P(progString)+1);
+	strcpy_P(s,progString);
+	st = s;
+	free(s);
+}
+
+String getPGMString(PGM_P progString){
+	char *s = (char*)malloc(strlen_P(progString)+1);
+	strcpy_P(s,progString);
+	String st = s;
+	free(s);
+	return st;
+
+}
+
+uint32_t print_pgm_str(PGM_P progString,Print *p){
+	return p->print(getPGMString(progString));
+}
+
+uint32_t print_pgm_strln(PGM_P progString,Print *p){
+	return p->println(getPGMString(progString));
+}
+#endif
+
 void blink(uint8_t pin,int times,int timeOn, int timeOff){
 	// pinMode(pin,OUTPUT);
 	for(int n = 0 ; n < times ; n++){
@@ -531,35 +556,6 @@ int findOcurrencesUntil(char* str, char target,char term){
 	return o;
 }
 
-void concatPGMString(PGM_P progString, String &st){
-	char *s = (char*)malloc(strlen_P(progString)+1);
-	strcpy_P(s,progString);
-	st.concat(s);
-	free(s);
-}
-void getPGMString(PGM_P progString, String &st){
-	char *s = (char*)malloc(strlen_P(progString)+1);
-	strcpy_P(s,progString);
-	st = s;
-	free(s);
-}
-
-String getPGMString(PGM_P progString){
-	char *s = (char*)malloc(strlen_P(progString)+1);
-	strcpy_P(s,progString);
-	String st = s;
-	free(s);
-	return st;
-
-}
-
-uint32_t print_pgm_str(PGM_P progString,Print *p){
-	return p->print(getPGMString(progString));
-}
-
-uint32_t print_pgm_strln(PGM_P progString,Print *p){
-	return p->println(getPGMString(progString));
-}
 
 
 

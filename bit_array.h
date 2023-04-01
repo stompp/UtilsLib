@@ -1,11 +1,7 @@
 #ifndef BIT_ARRAY_H_
 #define BIT_ARRAY_H_
 
-#if ARDUINO < 100
-#include "WProgram.h"
-#else
-#include "Arduino.h"
-#endif
+#include "platform.h"
 
 // unsigned long bit_endian_swap(unsigned long in, uint8_t nBytes = 1)
 // {
@@ -29,14 +25,14 @@ T bit_endian_swap(T in)
 
 	T out = 0;
 	long lastBit = (8 * sizeof(T)) - 1;
-	
-	for (long n = lastBit; n > -1 ; n--)
+
+	for (long n = lastBit; n > -1; n--)
 	{
 		uint8_t b = bitRead(in, n);
-		
+
 		if (b)
 		{
-			bitSet(out, lastBit -n);
+			bitSet(out, lastBit - n);
 		}
 	}
 
@@ -47,7 +43,7 @@ class BitArray
 {
 
 protected:
-	uint8_t *_data;
+	uint8_t *_data = NULL;
 	uint16_t _size;
 
 	uint8_t chunkPosition(uint16_t bit) { return bit % 8; }
@@ -74,7 +70,19 @@ public:
 	void setSize(uint16_t bitsNumber)
 	{
 		_size = bitsNumber;
-		_data = (uint8_t *)realloc(_data, chunks());
+		if (_data == NULL)
+		{
+			_data = (uint8_t *)malloc(chunks());
+			reset();
+		}
+		else
+		{
+			uint8_t *p = (uint8_t *)realloc(_data, chunks());
+			if (p != NULL)
+			{
+				_data = p;
+			}
+		}
 	}
 
 	/** Set all bits to low */
@@ -151,6 +159,7 @@ public:
 			digitalWrite(pins[n], bitRead(_data[chunk(n)], chunkPosition(n)));
 	}
 
+#ifdef ARDUINO
 	/** Convert bit mapping into a readeable string. Output example : 010111011 */
 	String toString()
 	{
@@ -227,6 +236,7 @@ public:
 		p->print("Content : ");
 		p->println(toString());
 	}
+#endif
 };
 
 #endif /* BIT_ARRAY_H_ */

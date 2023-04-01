@@ -1,10 +1,11 @@
 #ifndef _MATH_UTILS_H_
 #define _MATH_UTILS_H_
 
+#include "platform.h"
 // #include <stdint.h>
-#include <Arduino.h>
+// #include <Arduino.h>
 
-#include <math.h>
+// #include <math.h>
 
 /** Get the result of rasing \c base to \c exponent */
 long powLong(long base, long exponent);

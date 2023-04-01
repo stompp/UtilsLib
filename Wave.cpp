@@ -1,4 +1,4 @@
-#include <Wave.h>
+#include "Wave.h"
 
 
 #if USE_DISCRETE_SYSTEM == 0
@@ -165,7 +165,7 @@ double Wave::value(double ph, double kk)
         out = rhomboidWave(ph, kk);
         break;
     case WHITE_NOISE:
-        out = ((float)random(1000)) / 1000.0;
+        out = ((float)(random()%1001)) / 1000.0;
         break;
     case SINE_PULSE:
         out = sinPulseWave(ph, kk);

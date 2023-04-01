@@ -1,7 +1,10 @@
 #ifndef _timer_base_h_
 #define _timer_base_h_
 
-#include <Arduino.h>
+
+#include "platform.h"
+
+
 
 
 #define TIMER_NOT_SET 0
@@ -20,7 +23,7 @@ protected:
     unsigned long _before;
     unsigned long _remaining;
     unsigned long _timeSet;
-    bool _loop;
+     bool _loop;
     uint8_t _status;
 
 

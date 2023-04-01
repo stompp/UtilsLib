@@ -90,6 +90,7 @@ uint16_t chronoHoursSinceMS(unsigned long sinceMillis) { return chronoHoursForMS
 /** Gets chrono days @return �0-54?*/
 uint16_t chronoDaysSinceMS(unsigned long sinceMillis) { return chronoDaysForMS(millisSinceMS(sinceMillis)); }
 
+#ifdef ARDUINO
 #define PRINT_CHRONO_MODE 0
 
 /** prints Minutes:Seconds:Milliseconds through stream. Format MM:SS:mmm */
@@ -145,7 +146,7 @@ void printChronoTimeFor(unsigned long rawMillis, Stream *stream)
 
 #endif
 }
-
+#endif
 unsigned long MillisTimer::t_now()
 {
 	return millis();
@@ -158,10 +159,7 @@ MillisTimer::MillisTimer() : TimerBase()
 MillisTimer::~MillisTimer()
 {
 }
-// MillisTimer::MillisTimer(unsigned long t, bool loop, bool start, bool triggerOnFirstCheck) : TimerBase(t, loop, start, triggerOnFirstCheck)
-// {
 
-// }
 MillisTimer::MillisTimer(unsigned long t, bool loop, bool start, bool triggerOnFirstCheck) 
 {
 	 set(t, loop, start, triggerOnFirstCheck);
@@ -414,7 +412,7 @@ void MillisChronometer::reset()
 	_before = _millis = 0;
 }
 
-byte MillisChronometer::status()
+ uint8_t MillisChronometer::status()
 {
 	return _status;
 }

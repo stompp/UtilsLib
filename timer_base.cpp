@@ -1,5 +1,5 @@
 #include "timer_base.h"
-
+#include <stdlib.h>
 TimerBase::TimerBase(/* args */)
 {
     _remaining = _timeSet = _before = _status = _loop = 0;

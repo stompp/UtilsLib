@@ -1,6 +1,6 @@
 #ifndef _WAVE_H_
 #define _WAVE_H_
-#include <math_utils.h>
+#include "math_utils.h"
 
 #ifndef USE_DISCRETE_SYSTEM
 
@@ -8,7 +8,7 @@
 #endif
 
 #if USE_DISCRETE_SYSTEM == 1
-    #include <discrete_system.h>
+    #include "discrete_system.h"
 #else
     #define WAVE_TIME_MODE 0
 

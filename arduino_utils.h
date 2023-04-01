@@ -9,16 +9,15 @@
 //#pragma once
 #define arduino_utils_h_
 
-#if ARDUINO < 100
-#ifdef WPROGAM_H
-#include "WProgram.h"
-#endif
-#else
-#include "Arduino.h"
-#endif
+#include "platform.h"
+#ifdef ARDUINO
 #include <avr/pgmspace.h>
 #include <limits.h>
-#include <math_utils.h>
+#endif
+
+
+
+#include "math_utils.h"
 
 #define containsBit(value, bitvalue) ((value & bitvalue) == bitvalue);
 
@@ -27,6 +26,20 @@ typedef struct
 	long integer;
 	long decimal;
 } FloatParts;
+
+
+/**Get the number of elements in \c s delimited by \c delimiter */
+int getCSVElementsLength(const char *s, char delimiter = ',');
+
+int charsFor(unsigned long value);
+int charsFor(long value);
+/** Get integer and decimal part of \c x with a decimal resolution as indicated on \c digits */
+FloatParts getFloatParts(float x, int digits = 6);
+
+
+#ifdef ARDUINO
+
+
 
 /**
  * Get free RAM. Taken from the net
@@ -41,10 +54,6 @@ int freeRam();
 
 bool freeRamAvailable(size_t bytes);
 
-int charsFor(unsigned long value);
-int charsFor(long value);
-/** Get integer and decimal part of \c x with a decimal resolution as indicated on \c digits */
-FloatParts getFloatParts(float x, int digits = 6);
 /** Concat \c x float number string representation into \s string with a decimal resolution as indicated on \c digits */
 void concatFloat(String &s, float x, int digits = 6);
 /** Get \c x float number string representation with a decimal resolution as indicated on \c digits */
@@ -121,9 +130,6 @@ void debugFreeRam(Stream *p = &Serial);
 
 
 
-
-/**Get the number of elements in \c s delimited by \c delimiter */
-int getCSVElementsLength(const char *s, char delimiter = ',');
 /**Get the number of elements in \c s delimited by \c delimiter */
 int getCSVElementsLength(String &s, char delimiter = ',');
 
@@ -172,6 +178,9 @@ void printFormattedEFloat(float number, Stream *stream = &Serial);
 //	 return eFloat;
 //
 //}
+
+#endif 
+
 void blink(uint8_t pin,int times, int timeOn, int timeOff = -1);
 void rblink(uint8_t pin,int times, int timeOn, int timeOff = -1);
 void beep(uint8_t pin, unsigned long delayms, int nivel);
@@ -197,6 +206,7 @@ void swap(T &a, T &b)
 	a = b;
 	b = c;
 }
+
 template <typename T>
 void sortAsc(T *data, uint8_t size)
 {
@@ -216,6 +226,25 @@ void sortAsc(T *data, uint8_t size)
 		}
 	}
 }
+
+template <class T>
+void execute(T func)
+{
+    if (func)
+    {
+        func();
+    }
+}
+template <class T, class U>
+void execute(T func, U a)
+{
+    if (func)
+    {
+        func(a);
+    }
+}
+
+#ifdef ARDUINO
 template <typename T>
 void printArray(T *data, uint8_t size, char delimiter = ',', Stream *p = &Serial)
 {
@@ -247,23 +276,7 @@ uint32_t print_pgm_str(PGM_P progString, Print *p = &Serial);
 
 uint32_t print_pgm_strln(PGM_P progString, Print *p = &Serial);
 
+#endif
 
-
-template <class T>
-void execute(T func)
-{
-    if (func)
-    {
-        func();
-    }
-}
-template <class T, class U>
-void execute(T func, U a)
-{
-    if (func)
-    {
-        func(a);
-    }
-}
 
 #endif /* ARDUINO_UTILS_H_ */

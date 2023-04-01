@@ -1,5 +1,5 @@
 // #include "math_utils.h"
-
+ 
 #include "math_utils.h"
 
 /** Get the result of rasing \c base to \c exponent */
