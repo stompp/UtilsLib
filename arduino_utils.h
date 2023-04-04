@@ -9,7 +9,7 @@
 //#pragma once
 #define arduino_utils_h_
 
-#include "platform.h"
+#include <ArduinoPlatforms.h>
 #ifdef ARDUINO
 #include <avr/pgmspace.h>
 #include <limits.h>

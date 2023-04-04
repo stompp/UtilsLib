@@ -1,7 +1,7 @@
 #ifndef _MATH_UTILS_H_
 #define _MATH_UTILS_H_
 
-#include "platform.h"
+#include <ArduinoPlatforms.h> 
 // #include <stdint.h>
 // #include <Arduino.h>
 

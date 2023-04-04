@@ -213,7 +213,7 @@ void TimerBase::delay(long t)
     {
         _remaining += (unsigned long)t;
     }
-    else if (abs(t) >= _remaining)
+    else if (abs(t) >= (long)_remaining)
     {
         _remaining = 0;
     }

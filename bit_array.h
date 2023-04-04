@@ -1,7 +1,7 @@
 #ifndef BIT_ARRAY_H_
 #define BIT_ARRAY_H_
 
-#include "platform.h"
+#include <ArduinoPlatforms.h>
 
 // unsigned long bit_endian_swap(unsigned long in, uint8_t nBytes = 1)
 // {

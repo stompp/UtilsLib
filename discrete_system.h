@@ -2,7 +2,7 @@
 #define _DISCRETE_SYSTEM_H_
 
 
-#include "platform.h"
+#include <ArduinoPlatforms.h>
 
 #ifndef DISCRETE_SYSTEM_CALC_MODE
 #define DISCRETE_SYSTEM_CALC_MODE 0

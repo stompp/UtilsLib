@@ -2,7 +2,7 @@
 #define _timer_base_h_
 
 
-#include "platform.h"
+#include <ArduinoPlatforms.h>
 
 
 
