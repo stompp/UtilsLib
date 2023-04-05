@@ -7,18 +7,14 @@
             "args": [
                 "-fdiagnostics-color=always",
                 "-g",
-                "/home/chemi/repos/DooyaDC/*.h",
-               
+                "/home/chemi/Arduino/libraries/ArduinoPi/*.h",
+                "/home/chemi/Arduino/libraries/ArduinoPi/*.cpp",
                 "${workspaceFolder}/*.cpp",
                 "${workspaceFolder}/*.h",
                 "-o",
                 "${fileDirname}/${fileBasenameNoExtension}",
                 "-lwiringPi",
-                "-I",
-                "/home/chemi/repos/UtilsLib",
-                "-I",
-                "/home/chemi/repos/DooyaDC"
-
+                "-I/home/chemi/Arduino/libraries/ArduinoPi",
             ],
             "options": {
                 "cwd": "${fileDirname}"

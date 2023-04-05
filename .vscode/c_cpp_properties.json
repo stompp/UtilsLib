@@ -4,8 +4,8 @@
             "name": "Linux",
             "includePath": [
              
-                "/home/chemi/repos/DooyaDC/**",
-                "/home/chemi/repos/UtilsLib/**",
+             
+                "/home/chemi/Arduino/libraries/ArduinoPi",
                 "${workspaceFolder}/**"
             ],
             "defines": [],

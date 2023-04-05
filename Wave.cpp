@@ -1,4 +1,4 @@
-#include "Wave.h"
+#include <Wave.h>
 
 
 #if USE_DISCRETE_SYSTEM == 0

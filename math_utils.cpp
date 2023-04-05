@@ -1,59 +1,54 @@
 // #include "math_utils.h"
- 
+
 #include "math_utils.h"
 
+
 /** Get the result of rasing \c base to \c exponent */
-unsigned long pow2(uint8_t exponent)
-{
-    //	long result = 1;
-    //	while(exponent-- > 0) result*=base;
-    //	return result;
-    return bit(exponent);
+unsigned long pow2(uint8_t  exponent){
+//	long result = 1;
+//	while(exponent-- > 0) result*=base;
+//	return result;
+	return bit(exponent);
 }
 /** Get the result of rasing \c base to \c exponent */
-long powLong(long base, long exponent)
-{
-    //	long result = 1;
-    //	while(exponent-- > 0) result*=base;
-    //	return result;
-    return (exponent == 0) ? 1 : base * powLong(base, --exponent);
+long powLong(long base, long exponent){
+//	long result = 1;
+//	while(exponent-- > 0) result*=base;
+//	return result;
+	return (exponent == 0) ? 1: base*powLong(base,--exponent);
 }
 /** Get the result of rasing \c base to \c exponent */
-unsigned long powULong(unsigned long base, unsigned long exponent)
-{
+unsigned long powULong(unsigned long base, unsigned long exponent){
 
-    //	unsigned long result = 1;
-    //	while(exponent-- > 0) result*=base;
-    //	return result;
+//	unsigned long result = 1;
+//	while(exponent-- > 0) result*=base;
+//	return result;
 
-    return (exponent == 0) ? 1 : base * powLong(base, --exponent);
+	return (exponent == 0) ? 1: base*powLong(base,--exponent);
 }
 
 /** Check if \c value is power of \c base */
-bool isPowerOf(long value, long base)
-{
-    // zero is power of no number
-    if ((value == 0) || (base == 1))
-        return false;
-    // one is power of every number raised to 0
-    if (value == 1)
-        return true;
-    return (value % base == 0 ? isPowerOf(value / base, base) : false);
+bool isPowerOf(long value,long base){
+	// zero is power of no number
+	if ((value == 0) || (base == 1)) return false;
+	// one is power of every number raised to 0
+	if(value == 1) return true;
+	return (value%base == 0 ? isPowerOf(value/base,base) : false);
 }
 
 /** Check if \c value is power of 2 */
-bool isPowerOf2(long value) { return (value != 0) && ((value & (value - 1)) == 0); }
+bool isPowerOf2(long value){return (value != 0) && ((value & (value - 1)) == 0);}
 
 /** Check if \c x is even */
-bool isEven(long x) { return x % 2 == 0; }
+bool isEven(long x){return x%2 == 0;}
 
 /** Check if \c x is odd */
-bool isOdd(long x) { return x % 2 > 0; }
+bool isOdd(long x){return x%2 > 0;}
 
-unsigned long ul_plus_l(unsigned long ul, long l)
-{
+unsigned long ul_plus_l(unsigned long ul, long l){
 
-    return (l < 0) ? (ul - (unsigned long)(-l)) : (ul + (unsigned long)l);
+
+	return (l < 0) ? (ul - (unsigned long)(-l)) : (ul + (unsigned long)l) ;
 }
 
 /** Sign function, returns the sign -1, 1 of the value **/
@@ -113,7 +108,7 @@ double phaseToCycleValue(double phase)
 // Maps a wave value in range [-amplitude,amplitude] to range [0,amplitude]
 double positiveWave(double rangeMinus11Value, double amplitude)
 {
-    return (rangeMinus11Value + amplitude) / 2.0 * amplitude;
+    return (rangeMinus11Value + amplitude) / 2.0*amplitude;
 }
 
 /**
@@ -210,7 +205,7 @@ double sinPulseWave(double phase, double k)
     double nph = normalizedPhase(phase);
     double kph = TWO_PI * k;
 
-    if ((nph > kph) || (k == 0))
+    if ((nph> kph) || (k == 0))
     {
         return 0;
     }
@@ -240,5 +235,26 @@ double rhomboidWave(double phase, double k)
 
 float gap_calc(float maxV, float levels)
 {
-    return ceil(maxV / levels);
+    // return ceil(maxV / levels);
+    return (maxV / levels);
+}
+
+long valueInCircularRange(long value, long valueMax){
+     while (value < 0)
+    {
+        value += (valueMax);
+    }
+    return value % (valueMax + 1);
+}
+float fvalueInCircularRange(float value, float valueMax)
+{
+
+   
+    while (value < 0)
+    {
+        value += (valueMax);
+    }
+
+    return fmod(value, valueMax + 1.0f);
+  
 }

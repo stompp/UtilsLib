@@ -1,8 +1,11 @@
 #ifndef BIT_ARRAY_H_
 #define BIT_ARRAY_H_
-
 #include <ArduinoPlatforms.h>
-
+#if defined(RPI)
+#include <iostream>
+#include <cstring>
+using namespace std;
+#endif
 // unsigned long bit_endian_swap(unsigned long in, uint8_t nBytes = 1)
 // {
 // 	unsigned long out = 0;
@@ -43,7 +46,7 @@ class BitArray
 {
 
 protected:
-	uint8_t *_data = NULL;
+	uint8_t *_data;
 	uint16_t _size;
 
 	uint8_t chunkPosition(uint16_t bit) { return bit % 8; }
@@ -70,19 +73,7 @@ public:
 	void setSize(uint16_t bitsNumber)
 	{
 		_size = bitsNumber;
-		if (_data == NULL)
-		{
-			_data = (uint8_t *)malloc(chunks());
-			reset();
-		}
-		else
-		{
-			uint8_t *p = (uint8_t *)realloc(_data, chunks());
-			if (p != NULL)
-			{
-				_data = p;
-			}
-		}
+		_data = (uint8_t *)realloc(_data, chunks());
 	}
 
 	/** Set all bits to low */
@@ -158,8 +149,77 @@ public:
 		for (uint16_t n = 0; n < _size; n++)
 			digitalWrite(pins[n], bitRead(_data[chunk(n)], chunkPosition(n)));
 	}
+#ifdef RPI
+	/** Convert bit mapping into a readeable string. Output example : 010111011 */
+	string toString()
+	{
+		string s;
+		for (uint16_t n = 0; n < _size; n++)
+			s += (char(read(n) + '0'));
+		return s;
+	}
 
-#ifdef ARDUINO
+	/** Print bit mapping as a readeble string through \c p stream. Output example : 010111011 */
+	void debugString()
+	{
+		for (uint16_t n = 0; n < _size; n++)
+			cout << (char(read(n) + '0'));
+	}
+
+	/** Convert bit mapping into a readeable csv string
+	 * @param delimiter Character, by default ','
+	 * String examples :
+	 * 0,1,0,1,1,1,0,1,1
+	 * 0;1;0;1;1;1;0;1;1
+	 */
+	string toCSVString(char delimiter = ',')
+	{
+		string s = "";
+		for (uint16_t n = 0; n < _size; n++)
+		{
+			s += (char(read(n) + '0'));
+			if (n != (_size - 1))
+				s += delimiter;
+		}
+		return s;
+	}
+	/** Parse \c s string. String example : 010111011 */
+	void fromString(string s)
+	{
+		for (uint16_t n = 0; n < s.size(); n++)
+		{
+			write(n, s[n] - '0');
+		}
+	}
+	/** Parse \c s csv string.Implemented just reading one of each to characters.
+	 * Expected-like string examples :
+	 * 0,1,0,1,1,1,0,1,1
+	 * 0;1;0;1;1;1;0;1;1
+	 */
+	void fromCSVString(string s)
+	{
+		uint16_t position;
+		for (uint16_t n = 0; n < s.size(); n += 2)
+		{
+			write(position++, ((uint8_t)s[n]) - '0');
+		}
+	}
+
+	// DEBUGGING
+
+	/** Print Bits info through stream. Default is Serial */
+	void printBits()
+	{
+		for (uint16_t n = 0; n < _size; n++)
+		{
+			printf("%ud : %ud\n", n, read(n));
+		}
+	}
+	void printInfo()
+	{
+		printf("Size : %ud Chuks : %ud\nContent : %s", _size, chunks(), toString());
+	}
+#else
 	/** Convert bit mapping into a readeable string. Output example : 010111011 */
 	String toString()
 	{
@@ -236,6 +296,7 @@ public:
 		p->print("Content : ");
 		p->println(toString());
 	}
+
 #endif
 };
 

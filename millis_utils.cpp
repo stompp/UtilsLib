@@ -1,4 +1,6 @@
 #include "millis_utils.h"
+
+
 /** TODO */
 unsigned long toMillis(float timeValue, uint8_t scale)
 {
@@ -34,10 +36,11 @@ bool millisReached(unsigned long nextMillis, unsigned long nowMillis)
 	return (nowMillis >= nextMillis);
 }
 /** Check if \c intervalMillis ellapsed since \c lastRecordMillis */
-bool millisOver(unsigned long lastRecordMillis, unsigned long intervalMillis) { 
-	// return millisReached(lastRecordMillis + intervalMillis); 
-	return ((millis() -  lastRecordMillis) >= intervalMillis);
-	}
+bool millisOver(unsigned long lastRecordMillis, unsigned long intervalMillis)
+{
+	// return millisReached(lastRecordMillis + intervalMillis);
+	return ((millis() - lastRecordMillis) >= intervalMillis);
+}
 
 /** Gets elapsed millis from sinceMillis to indicated nowMillis  */
 unsigned long elapsedMillis(unsigned long sinceMillis, unsigned long nowMillis)
@@ -90,9 +93,8 @@ uint16_t chronoHoursSinceMS(unsigned long sinceMillis) { return chronoHoursForMS
 /** Gets chrono days @return �0-54?*/
 uint16_t chronoDaysSinceMS(unsigned long sinceMillis) { return chronoDaysForMS(millisSinceMS(sinceMillis)); }
 
-#ifdef ARDUINO
 #define PRINT_CHRONO_MODE 0
-
+#ifdef ARDUINO
 /** prints Minutes:Seconds:Milliseconds through stream. Format MM:SS:mmm */
 void printChronoTimeMSMsFor(unsigned long rawMillis, Stream *stream)
 {
@@ -152,17 +154,20 @@ unsigned long MillisTimer::t_now()
 	return millis();
 }
 
-MillisTimer::MillisTimer() : TimerBase()
-{
-}
+// MillisTimer::MillisTimer() :TimerBase() 
+// {
+// }
 
 MillisTimer::~MillisTimer()
 {
 }
+// MillisTimer::MillisTimer(unsigned long t, bool loop, bool start, bool triggerOnFirstCheck) : TimerBase(t, loop, start, triggerOnFirstCheck)
+// {
 
-MillisTimer::MillisTimer(unsigned long t, bool loop, bool start, bool triggerOnFirstCheck) 
+// }
+MillisTimer::MillisTimer(unsigned long t, bool loop, bool start, bool triggerOnFirstCheck) :TimerBase()
 {
-	 set(t, loop, start, triggerOnFirstCheck);
+	set(t, loop, start, triggerOnFirstCheck);
 }
 
 unsigned long MillisTimer::frequency_to_period(double hertzs)
@@ -412,7 +417,7 @@ void MillisChronometer::reset()
 	_before = _millis = 0;
 }
 
- uint8_t MillisChronometer::status()
+uint8_t MillisChronometer::status()
 {
 	return _status;
 }

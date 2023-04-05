@@ -5,8 +5,6 @@
 #include <ArduinoPlatforms.h>
 
 
-
-
 #define TIMER_NOT_SET 0
 #define TIMER_STOPPED 1
 #define TIMER_PAUSED 2
@@ -21,11 +19,11 @@ class TimerBase
 {
 protected:
     unsigned long _before;
-    unsigned long _remaining;
+    long _remaining;
     unsigned long _timeSet;
-     bool _loop;
+    bool _loop;
     uint8_t _status;
-
+    bool _triggerOnFirstCheck;
 
     virtual unsigned long t_now() = 0;
     virtual unsigned long frequency_to_period(double hertzs) = 0;
@@ -44,35 +42,29 @@ public:
     void start(unsigned long t, bool loop = false, bool triggerOnFirstCheck = false);
 
     // void start(bool triggerOnFirstCheck);
-
+    void setTime(unsigned long t);
+    void setLoop(bool doLoop);
+    void setTriggerOnFirstCheck(bool triggerOnFirstCheck);
+    
     void start();
     void startIn(unsigned long t);
-
-
     void stop();
     void pause(bool doPause = true);
     void resume();
-
     void restart(bool triggerOnFirstCheck = false);
+   
+    long remaining();
+    long ellapsed();
     
-    // void delay(unsigned long ms);
-
-    unsigned long remaining();
-
     uint8_t status();
     operator bool();
-
-    void loopMode(bool loop);
-
+    
     double progress();
-
     unsigned long progress100();
-
     bool isActive();
-
     void setRemaining(unsigned long remaining);
-
     void delay(long t);
+    unsigned long timeSet();
 };
 
 #endif

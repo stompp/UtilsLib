@@ -1,12 +1,13 @@
 #ifndef _MATH_UTILS_H_
 #define _MATH_UTILS_H_
 
-#include <ArduinoPlatforms.h> 
 // #include <stdint.h>
-// #include <Arduino.h>
+#include <ArduinoPlatforms.h>
 
 // #include <math.h>
 
+long valueInCircularRange(long value, long valueMax);
+float fvalueInCircularRange(float value, float valueMax);
 /** Get the result of rasing \c base to \c exponent */
 long powLong(long base, long exponent);
 /** Get the result of rasing \c base to \c exponent */
@@ -48,7 +49,7 @@ double floatMod(double dividend, double divisor);
  * TODO check if type salad is needed
  */
 template <typename T, typename U>
-T dimValue(T &value, U dif, T minV, T maxV, bool autoUpdate = true)
+T dimValue(T &value, U dif, T minV, T maxV, bool autoUpdate)
 {
     T v = constrain(value, minV, maxV);
 
@@ -63,11 +64,44 @@ T dimValue(T &value, U dif, T minV, T maxV, bool autoUpdate = true)
         out = maxV;
     else
         out = v + (T)dif;
-    // out = constrain(v + (T)dif, minV, maxV);
 
     if (autoUpdate)
         value = out;
     return out;
+}
+
+template <typename T, typename U>
+T dimValueInCircle(T &value, U dif, T minV, T maxV, bool autoUpdate)
+{
+    T temp = value;
+    T minD = value - minV;
+    T maxD = maxV - value;
+
+    if ((dif < 0 && (abs(dif) > (minD))))
+    {
+        temp = dimValue(maxV, dif + minD, minV, maxV, false);
+        if (autoUpdate)
+            value = temp;
+    }
+    else if ((dif > 0 && maxD < dif))
+    {
+        temp = dimValue(minV, dif - maxD, minV, maxV, false);
+        if (autoUpdate)
+            value = temp;
+    }
+    else
+    {
+        temp = dimValue(value, dif, minV, maxV, autoUpdate);
+    }
+    return temp;
+}
+
+template <typename T, typename U>
+T dimValue(T &value, U dif, T minV, T maxV, bool inCircle, bool autoUpdate)
+{
+
+    return inCircle ? (dimValueInCircle(value, dif, minV, maxV, autoUpdate))
+                    : dimValue(value, dif, minV, maxV, autoUpdate);
 }
 
 // template <typename T, typename U, typename V, typename W>
@@ -94,6 +128,24 @@ T mapT(T x, T in_min, T in_max, T out_min, T out_max)
     return (x - in_min) * (out_max - out_min) / (in_max - in_min) + out_min;
 }
 
+/**
+ * Template map function. Same as map but for any type.
+ */
+template <typename T>
+T mapT(T x, T in_min, T in_max, T out_max)
+{
+    return mapT(x, in_min, in_max, 0, out_max);
+    // return (x - in_min) * (out_max - out_min) / (in_max - in_min) + out_min;
+}
+/**
+ * Template map function. Same as map but for any type.
+ */
+template <typename T>
+T mapT(T x, T in_max, T out_max)
+{
+    return mapT(x, 0, in_max, 0, out_max);
+    // return (x - in_min) * (out_max - out_min) / (in_max - in_min) + out_min;
+}
 /**
  * Interpolates a value @param x whose original range starts at @param xStart and ends at @param xEnd,
  * into a new range @param yStart @param yEnd. Start values can be bigger than end values. Any direction interpolation.
@@ -145,8 +197,11 @@ T interpolate(T x, T xStart, T xEnd, T yStart, T yEnd)
  * e.g startV is 80 endV is 20 maxV is 100 then output distance is 40
  */
 template <typename T>
-T circleUpwardsDistance(T startV, T endV, T maxV)
+T circleUpwardsDistance(T _startV, T _endV, T _minV, T _maxV)
 {
+    T startV = _startV - _minV;
+    T endV = _endV - _minV;
+    T maxV = _maxV - _minV;
     T dif = 0;
     // T s = startV % (maxV + 1);
     // T e = endV % (maxV + 1);
@@ -161,6 +216,15 @@ T circleUpwardsDistance(T startV, T endV, T maxV)
         // dif = (maxV + (T)1) - s + e;
         dif = maxV + e - s;
     }
+
+    // T a[] = {_startV, _endV, _minV, _maxV, startV, endV, maxV, s, e, dif};
+    // for (int n = 0; n < 10; n++)
+    // {
+    //     Serial.print(n);
+    //     Serial.print(" ");
+    //     Serial.println(a[n]);
+    // }
+
     return dif;
 }
 
@@ -170,13 +234,17 @@ T circleUpwardsDistance(T startV, T endV, T maxV)
  * e.g startV is 80 endV is 20 maxV is 100 then output distance is 60
  */
 template <typename T>
-T circleDownwardsDistance(T startV, T endV, T maxV)
+T circleDownwardsDistance(T _startV, T _endV, T _minV, T _maxV)
 {
-    T dif = 0;
-    // T s = startV % (maxV + 1);
-    // T e = endV % (maxV + 1);
+    T startV = _startV - _minV;
+    T endV = _endV - _minV;
+    T maxV = _maxV - _minV;
+
+    T dif = (T)0;
+
     T s = (T)floatMod(startV, (maxV + 1));
     T e = (T)floatMod(endV, (maxV + 1));
+
     if (s >= e)
     {
         dif = s - e;
@@ -186,8 +254,67 @@ T circleDownwardsDistance(T startV, T endV, T maxV)
         // dif = maxV + (T)1 -e + s ;
         dif = maxV + s - e;
     }
+
+    // T a[] = {_startV, _endV, _minV, _maxV, startV, endV, maxV, s, e, dif};
+    // for (int n = 0; n < 10; n++)
+    // {
+    //     Serial.print(n);
+    //     Serial.print(" ");
+    //     Serial.println(a[n]);
+    // }
     return dif;
 }
+
+// /**
+//  * Maps a linear value @param linePosition in range [ @param lineStart, @param lineEnd] into a circular ranged
+//  * value going from 0 to @param circleMaxValue starting at @param circleStartValue and ending at @param circleEndValue
+//  * running the minumun distance between both.
+//  * e.g linePosition is 50 from 0 to 100
+//  * circleStartValue is 80 circleEndValue is 20 circleMaxValue is 99 then result is 0
+//  *  circleStartValue is 80 circleEndValue is 20 circleMaxValue is 100 then result is 100
+//  */
+// template <typename T>
+// T minumunDistanceCircularMap(T linePosition, T lineStart, T lineEnd, T circleStartValue, T circleEndValue, T circleMaxValue)
+// {
+
+//     T out = circleEndValue;
+
+//     if (linePosition < lineEnd)
+//     {
+
+//         T dd = circleDownwardsDistance(circleStartValue, circleEndValue, circleMaxValue);
+//         // Serial.println(dd);
+//         T ud = circleUpwardsDistance(circleStartValue, circleEndValue, circleMaxValue);
+//         // Serial.println(ud);
+//         if (ud <= dd)
+//         {
+
+//             if (circleStartValue <= circleEndValue)
+//             {
+//                 out = mapT(linePosition, lineStart, lineEnd, circleStartValue, circleEndValue);
+//             }
+//             else
+//                 out = floatMod((circleStartValue + (T)1 + mapT(linePosition, lineStart, lineEnd, (T)0, ud)), (circleMaxValue + 1));
+//             // out = (circleStartValue + mapT(linePosition, lineStart, lineEnd, (T)0, ud)) % (circleMaxValue + 1);
+//         }
+//         else
+//         {
+
+//             if (circleStartValue <= circleEndValue)
+//             {
+
+//                 out = floatMod((circleEndValue + dd - mapT(linePosition, lineStart, lineEnd, (T)0, dd)), (circleMaxValue + 1));
+//                 // out = (circleEndValue + dd - mapT(linePosition, lineStart, lineEnd, (T)0, dd)) % (circleMaxValue + 1);
+//             }
+//             else
+//             {
+//                 out = circleStartValue - mapT(linePosition, lineStart, lineEnd, (T)0, dd);
+//             }
+//         }
+//     }
+
+//     return out;
+// }
 
 /**
  * Maps a linear value @param linePosition in range [ @param lineStart, @param lineEnd] into a circular ranged
@@ -198,27 +325,31 @@ T circleDownwardsDistance(T startV, T endV, T maxV)
  *  circleStartValue is 80 circleEndValue is 20 circleMaxValue is 100 then result is 100
  */
 template <typename T>
-T minumunDistanceCircularMap(T linePosition, T lineStart, T lineEnd, T circleStartValue, T circleEndValue, T circleMaxValue)
+T minumunDistanceCircularMap(T linePosition, T lineStart, T lineEnd, T _circleStartValue, T _circleEndValue, T _circleMinValue, T _circleMaxValue)
 {
 
-    T out = circleEndValue;
+    T circleStartValue = _circleStartValue - _circleMinValue;
+    T circleEndValue = _circleEndValue - _circleMinValue;
+    T circleMaxValue = _circleMaxValue - _circleMinValue;
+
+    T out = _circleEndValue;
 
     if (linePosition < lineEnd)
     {
 
-        T dd = circleDownwardsDistance(circleStartValue, circleEndValue, circleMaxValue);
-        // Serial.println(dd);
-        T ud = circleUpwardsDistance(circleStartValue, circleEndValue, circleMaxValue);
-        // Serial.println(ud);
+        T dd = circleDownwardsDistance(_circleStartValue, _circleEndValue, _circleMinValue, _circleMaxValue);
+
+        T ud = circleUpwardsDistance(_circleStartValue, _circleEndValue, _circleMinValue, _circleMaxValue);
+
         if (ud <= dd)
         {
 
             if (circleStartValue <= circleEndValue)
             {
-                out = mapT(linePosition, lineStart, lineEnd, circleStartValue, circleEndValue);
+                out = mapT(linePosition, lineStart, lineEnd, _circleStartValue, _circleEndValue);
             }
             else
-                out = floatMod((circleStartValue + (T)1 + mapT(linePosition, lineStart, lineEnd, (T)0, ud)), (circleMaxValue + 1));
+                out = _circleMinValue + floatMod((circleStartValue + (T)1 + mapT(linePosition, lineStart, lineEnd, (T)0, ud)), (circleMaxValue + 1));
             // out = (circleStartValue + mapT(linePosition, lineStart, lineEnd, (T)0, ud)) % (circleMaxValue + 1);
         }
         else
@@ -227,12 +358,12 @@ T minumunDistanceCircularMap(T linePosition, T lineStart, T lineEnd, T circleSta
             if (circleStartValue <= circleEndValue)
             {
 
-                out = floatMod((circleEndValue + dd - mapT(linePosition, lineStart, lineEnd, (T)0, dd)), (circleMaxValue + 1));
+                out = _circleMinValue + floatMod((circleEndValue + dd - mapT(linePosition, lineStart, lineEnd, (T)0, dd)), (circleMaxValue + 1));
                 // out = (circleEndValue + dd - mapT(linePosition, lineStart, lineEnd, (T)0, dd)) % (circleMaxValue + 1);
             }
             else
             {
-                out = circleStartValue - mapT(linePosition, lineStart, lineEnd, (T)0, dd);
+                out = _circleStartValue - mapT(linePosition, lineStart, lineEnd, (T)0, dd);
             }
         }
     }
@@ -240,39 +371,152 @@ T minumunDistanceCircularMap(T linePosition, T lineStart, T lineEnd, T circleSta
     return out;
 }
 
-// uint16_t minumunDistanceCircularMap(unsigned long linePosition, unsigned long lineStart, unsigned long lineEnd, uint16_t startValue, uint16_t circleEndValue, uint16_t maxValue)
-// {
+template <typename T>
+class Constrainer
+{
+protected:
+    T _xMax;
+    T _xMin;
 
-//     uint16_t out = endValue;
+public:
+    Constrainer() : _xMax(0), _xMin(0)
+    {
+    }
 
-//     if (linePosition < lineEnd)
-//     {
+    Constrainer(T a, T b = 0)
+    {
+        set(a, b);
+    }
+    T xMin()
+    {
+        return _xMin;
+    }
+    T xMax()
+    {
 
-//         uint16_t dd = circleDownwardsDistance(startValue, endValue, maxValue);
-//         uint16_t ud = circleUpwardsDistance(startValue, endValue, maxValue);
+        return _xMax;
+    }
+    T xWidth()
+    {
+        return _xMax - _xMin;
+    }
 
-//         if (ud <= dd)
-//         {
+    void set(T a, T b = 0)
+    {
+        _xMax = (a > b) ? a : b;
+        _xMin = (a > b) ? b : a;
+    }
 
-//             out = (startValue + map(linePosition, lineStart, lineEnd, 0, ud)) % (maxValue + 1);
-//         }
-//         else
-//         {
+    // T constrained(T value)
+    // {
+    //     return constrain(value, _xMin, _xMax);
+    // }
 
-//             if (startValue <= endValue)
-//             {
+    T constrained(float value)
+    {
+        return constrain(value, _xMin, _xMax);
+    }
+    bool isMax(T value)
+    {
+        return _xMax == constrained(value);
+    }
 
-//                 out = (endValue + dd - map(linePosition, lineStart, lineEnd, 0, dd)) % (maxValue + 1);
-//             }
-//             else
-//             {
-//                 out = startValue - map(linePosition, lineStart, lineEnd, 0, dd);
-//             }
-//         }
-//     }
+    bool isMin(T value)
+    {
+        return _xMin == constrained(value);
+    }
 
-//     return out;
-// }
+    bool isIn(T value)
+    {
+        return (value <= _xMax) && (value >= _xMin);
+    }
+
+    float progress(T value)
+    {
+        return (((float)value - (float)_xMin) / ((float)_xMax - (float)_xMin)) ;
+    }
+    float progress100(T value)
+    {
+        return progress(value) * 100.0f;
+    }
+    T distanceToMin(T value)
+    {
+        return value - _xMin;
+    }
+    T distanceToMax(T value)
+    {
+        return _xMax - value;
+    }
+    T progresstoValue(float prc)
+    {
+        float c = _xMin + ((float)(xWidth()) * prc);
+
+        return constrained(c);
+    }
+    T progress100toValue(float prc)
+    {
+        float c = _xMin + ((float)(xWidth()) * prc) / 100.f;
+
+       return constrained(c);
+    }
+
+    T circularProgresstoValue(float prc)
+    {
+        return constrainedInCircle(((float)_xMin) + ((float)(xWidth()) * prc));
+    }
+    T circularProgress100toValue(float prc)
+    {
+        return circularProgresstoValue(prc / 100.f);
+    }
+
+    // TODO Test
+    // T constrainedInCircle(T value)
+    // {
+    //     return _xMin + (floatMod(value - _xMin, xWidth()));
+    // }
+    T constrainedInCircle(float value)
+    {
+
+        return _xMin + fvalueInCircularRange(value - _xMin, xWidth());
+        // float dif = (floatMod(value - _xMin, xWidth()));
+        // float o = dif + _xMin;
+        // if (dif < 0)
+        // {
+        //     o += xWidth();
+        // }
+
+        // return o;
+    }
+    template <typename U>
+    T dim(T &value, U dif, bool autoUpdate)
+    {
+        return dimValue(value, dif, xMin(), xMax(), autoUpdate);
+    }
+    template <typename U>
+    T dim(T &value, U dif, bool inCircle, bool autoUpdate)
+    {
+        return dimValue(value, dif, xMin(), xMax(), inCircle, autoUpdate);
+    }
+
+    T getLevelValue(uint16_t level, uint16_t maxLevel)
+    {
+        uint16_t l = constrain(level, 0, maxLevel);
+        if (l == maxLevel)
+        {
+            return xMax();
+        }
+        return xMin() + (l * (xWidth() / maxLevel));
+    }
+    bool isMinOrMax(T a)
+    {
+        return (isMin(a) || isMax(a));
+    }
+
+    bool isMinAndMax(T a, T b)
+    {
+        return ((isMin(a) && isMax(b)) || (isMin(b) && isMax(a)));
+    }
+};
 
 template <typename T>
 class TimedInterpolationBase
@@ -289,7 +533,7 @@ public:
         startTime = 0;
     }
 
-    virtual void reset()
+    void reset()
     {
         active = false;
     }
@@ -317,105 +561,264 @@ public:
     {
         return (active && (startV != endV));
     }
-};
 
-template <typename T>
-class TimedLinearInterpolation : public TimedInterpolationBase<T>
-{
-
-public:
-    T value(T &startV, T endV, unsigned long transitionTime, bool autoChangeStartV = true)
+    T linear(T &startV, T endV, unsigned long transitionTime, bool autoChangeStartV)
     {
 
         T out = startV;
         unsigned long t = millis();
 
-        this->startCheck(startV, endV);
+        startCheck(startV, endV);
 
-        if (this->canCalculate(startV, endV))
+        if (canCalculate(startV, endV))
         {
 
-            out = (T)interpolate((double)t, (double)this->startTime, (double)(this->startTime + transitionTime), (double)startV, (double)endV);
-            if (t >= (this->startTime + transitionTime))
+            out = (T)interpolate((double)t, (double)startTime, (double)(startTime + transitionTime), (double)startV, (double)endV);
+            if (t >= (startTime + transitionTime))
                 out = endV;
         }
 
-        this->endCheck(out, startV, endV, autoChangeStartV);
+        endCheck(out, startV, endV, autoChangeStartV);
+
+        return out;
+    }
+
+    T minimunDistanceCircular(T &startV, T endV, T minV, T maxV, unsigned long transitionTime, bool autoChangeStartV)
+    {
+
+        T out = startV;
+        unsigned long t = millis();
+
+        startCheck(startV, endV);
+
+        if (this->canCalculate(startV, endV))
+        {
+            out = minV + (T)minumunDistanceCircularMap((double)t, (double)startTime, (double)(startTime + transitionTime), (double)(startV - minV), (double)(endV - minV), 0.0 /*(double)minV*/, (double)(maxV - minV));
+        }
+
+        endCheck(out, startV, endV, autoChangeStartV);
 
         return out;
     }
 };
 
 template <typename T>
-class TimedLinearInterpolator : public TimedLinearInterpolation<T>
+class TimedInterpolator : public TimedInterpolationBase<T>
 {
-
+private:
+    /* data */
 public:
     T target;
     T prev;
     unsigned long durationMs;
     bool autoChangeSV = true;
-    T value()
+
+    T linear()
     {
-        return TimedLinearInterpolation<T>::value(prev, target, durationMs, autoChangeSV);
+        return TimedInterpolationBase<T>::linear(prev, target, durationMs, autoChangeSV);
     }
 
-    void init(T initValue, unsigned long ms)
+    T minimunDistanceCircular(T minValue, T maxValue)
     {
+        return TimedInterpolationBase<T>::minimunDistanceCircular(prev, target, minValue, maxValue, durationMs, autoChangeSV);
     }
 
-    virtual void reset()
+    void start(T newPrev, T newTarget)
     {
-        this->reset();
+
+        target = newTarget;
+        prev = newPrev;
+        TimedInterpolationBase<T>::reset();
+    }
+    void start(T value)
+    {
+        start(value, value);
+    }
+    void moveTo(T newTarget)
+    {
+        if (target != newTarget)
+            start(target, newTarget);
+    }
+    void startReverse()
+    {
+        T aux = prev;
         prev = target;
+        target = aux;
+        TimedInterpolationBase<T>::reset();
+    }
+    void restart()
+    {
+        TimedInterpolationBase<T>::reset();
+    }
+    void reset()
+    {
+        prev = target;
+        TimedInterpolationBase<T>::reset();
+    }
+    void reset(T value)
+    {
+
+        start(value);
+    }
+    void reset(T newPrev, T newTarget)
+    {
+
+        start(newPrev, newTarget);
+    }
+
+    void resetTarget(T newTarget)
+    {
+
+        TimedInterpolationBase<T>::reset();
+        target = newTarget;
+    }
+    void resetPrev(T newPrev)
+    {
+
+        TimedInterpolationBase<T>::reset();
+        prev = newPrev;
+    }
+    unsigned long getStartTime() { return TimedInterpolationBase<T>::startTime; }
+    unsigned long getEndTime() { return TimedInterpolationBase<T>::startTime + durationMs; }
+
+    void setDurationMs(unsigned long durationInMs)
+    {
+        durationMs = durationInMs;
+    }
+    unsigned long getDurationMs()
+    {
+        return durationMs;
+    }
+    float getProgress()
+    {
+
+        float r = ((float)millis() - (float)getStartTime()) / (float)durationMs;
+        return (constrain(r, 0.0f, 1.0f));
+    }
+
+    float getProgress100()
+    {
+        return 100.0f*getProgress();
+        
+    }
+    void init(unsigned long durationInMs, bool doAutoChangeStartValue)
+    {
+
+        durationMs = durationInMs;
+        autoChangeSV = doAutoChangeStartValue;
+    }
+
+    void init(T initPrev, T initTarget, unsigned long durationInMs, bool doAutoChangeStartValue)
+    {
+        prev = initPrev;
+        target = initTarget;
+        init(durationInMs, doAutoChangeStartValue);
+    }
+    void init(T initValue, unsigned long durationInMs, bool doAutoChangeStartValue)
+    {
+        init(initValue, initValue, durationInMs, doAutoChangeStartValue);
     }
 };
 
-// template <typename T>
-// class TimedLinearValueInterpolation : public TimedLinearInterpolation<T>
-// {
-
-// public:
-
-//     T prev;
-//     T target;
-//     unsigned long duration;
-//     bool autoUpdate;
-
-//     T value(){
-//         return this->value(prev,target,duration,autoUpdate);
-//     }
-
-//     void reset(T p, T t){
-//         prev = p;
-//         target = t;
-//        TimedLinearInterpolation::reset();
-
-//     }
-
-// };
-
 template <typename T>
-class TimedMinimunDistanceCircularInterpolation : public TimedInterpolationBase<T>
+class TimedValueInterpolator : public TimedInterpolator<T>
 {
 
 public:
-    T value(T &startV, T endV, T maxV, unsigned long transitionTime, bool autoChangeStartV = true)
+    static const uint8_t CONSTRAINED = 0;
+    static const uint8_t CIRCULAR = 1;
+
+    uint8_t mode = CONSTRAINED;
+    Constrainer<T> limits;
+    bool animateCircularLimitToLimit = false;
+    bool isConstrained() { return mode == CONSTRAINED; }
+    bool isCircular() { return mode == CIRCULAR; }
+    void setMode(uint8_t _mode)
     {
+        mode = _mode;
+    }
+    void setMode(uint8_t _mode, Constrainer<T> &_limits)
+    {
+        setMode(_mode);
 
-        T out = startV;
-        unsigned long t = millis();
+        setLimits(_limits);
+    }
+    void setLimits(Constrainer<T> &_limits)
+    {
+        limits = _limits;
+        start(limits.xMax());
+    }
+    void setConstrained()
+    {
+        setMode(CONSTRAINED);
+    }
 
-        this->startCheck(startV, endV);
+    void setCircular()
+    {
+        setMode(CIRCULAR);
+    }
+    void setConstrained(Constrainer<T> &_limits)
+    {
+        setMode(CONSTRAINED, limits);
+    }
 
-        if (this->canCalculate(startV, endV))
+    void setCircular(Constrainer<T> _limits)
+    {
+        setMode(CIRCULAR, limits);
+    }
+
+    T value()
+    {
+        // if(mode == CIRCULAR)
+        if ((mode == CIRCULAR) && !(animateCircularLimitToLimit && limits.isMinAndMax(TimedInterpolator<T>::prev, TimedInterpolator<T>::target)))
         {
-            out = (T)minumunDistanceCircularMap((double)t, (double)this->startTime, (double)(this->startTime + transitionTime), (double)startV, (double)endV, (double)maxV);
+            return TimedInterpolator<T>::minimunDistanceCircular(limits.xMin(), limits.xMax());
         }
+        return TimedInterpolator<T>::linear();
+    }
 
-        this->endCheck(out, startV, endV, autoChangeStartV);
+    template <typename U>
+    T getDimmedTarget(U &v, bool autoUpdate)
+    {
+        return dimValue(TimedInterpolator<T>::target, v, limits.xMin(), limits.xMax(), isCircular(), autoUpdate);
+    }
+    template <typename U>
+    T filterValue(U v)
+    {
+        if (isCircular())
+        {
+            return limits.constrainedInCircle(v);
+        }
+        return limits.constrained(v);
+    }
+    T progressToValue(float progress)
+    {
+        return isCircular() ? limits.circularProgresstoValue(progress)
+                            : limits.progresstoValue(progress);
+    }
+};
+template <typename T>
+class TimedLinearInterpolator : public TimedInterpolator<T>
+{
 
-        return out;
+public:
+    T value()
+    {
+        return TimedInterpolator<T>::linear();
+    }
+};
+
+// t
+template <typename T>
+class TimedMinimunDistanceCircularInterpolator : public TimedInterpolator<T>
+{
+
+public:
+    T minValue = 0;
+    T maxValue;
+    T value()
+    {
+        return TimedInterpolator<T>::minimunDistanceCircular(minValue, maxValue);
     }
 };
 
@@ -472,4 +875,5 @@ double rhomboidWave(double phase, double k);
 double sinPulseWave(double phase, double k = 0.5f);
 
 float gap_calc(float maxV, float levels);
+
 #endif

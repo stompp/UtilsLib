@@ -1,5 +1,5 @@
 #include "timer_base.h"
-#include <stdlib.h>
+
 TimerBase::TimerBase(/* args */)
 {
     _remaining = _timeSet = _before = _status = _loop = 0;
@@ -52,6 +52,7 @@ bool TimerBase::check()
 
 void TimerBase::set(unsigned long t, bool loop, bool start, bool triggerOnFirstCheck)
 {
+    _triggerOnFirstCheck = triggerOnFirstCheck;
     _timeSet = _remaining = t;
     _loop = loop;
     if (start)
@@ -63,8 +64,11 @@ void TimerBase::set(unsigned long t, bool loop, bool start, bool triggerOnFirstC
     {
         _status = TIMER_PAUSED;
     }
-    if (triggerOnFirstCheck)
+    if (_triggerOnFirstCheck)
+    {
         _remaining = 0;
+        _triggerOnFirstCheck = false;
+    }
 }
 
 void TimerBase::setFrequency(double hertzs, bool start, bool triggerOnFristCheck)
@@ -85,26 +89,10 @@ void TimerBase::start(unsigned long t, bool loop, bool triggerOnFirstCheck)
     set(t, loop, true, triggerOnFirstCheck);
 }
 
-// void TimerBase::start(bool triggerOnFirstCheck)
-// {
-// 	set(_timeSet, _loop, true, triggerOnFirstCheck);
-// }
 void TimerBase::start()
 {
-    set(_timeSet, _loop, true, false);
-
-    // _before = t_now();
-    // _status = TIMER_ACTIVE;
-
-    // if (_status == TIMER_STOPPED)
-    // {
-    //     _remaining = _timeSet;
-    // }
-    // if (_status < TIMER_ACTIVE)
-    // {
-    //     _before = t_now();
-    //     _status = TIMER_ACTIVE;
-    // }
+    set(_timeSet, _loop, true, _triggerOnFirstCheck);
+   
 }
 
 void TimerBase::startIn(unsigned long t)
@@ -159,7 +147,9 @@ void TimerBase::resume()
 
 void TimerBase::restart(bool triggerOnFirstCheck)
 {
-    set(_timeSet, _loop, true, triggerOnFirstCheck);
+    setTriggerOnFirstCheck(triggerOnFirstCheck);
+    start();
+    // set(_timeSet, _loop, true, triggerOnFirstCheck);
 }
 
 // void TimerBase::delay(unsigned long ms){
@@ -169,9 +159,15 @@ void TimerBase::restart(bool triggerOnFirstCheck)
 // }
 uint8_t TimerBase::status() { return _status; }
 
-unsigned long TimerBase::remaining()
+long TimerBase::remaining()
 {
+    // check();
     return _remaining;
+}
+
+long TimerBase::ellapsed()
+{
+    return _timeSet - remaining();
 }
 
 TimerBase::operator bool()
@@ -180,14 +176,11 @@ TimerBase::operator bool()
     return check();
 }
 
-void TimerBase::loopMode(bool loop)
-{
-    _loop = loop;
-}
+
 
 double TimerBase::progress()
 {
-    return 1.0 - (double)_remaining / (double)_timeSet;
+    return 1.0 - (double)remaining() / (double)_timeSet;
 }
 
 unsigned long TimerBase::progress100()
@@ -213,7 +206,7 @@ void TimerBase::delay(long t)
     {
         _remaining += (unsigned long)t;
     }
-    else if (abs(t) >= (long)_remaining)
+    else if (abs(t) >= _remaining)
     {
         _remaining = 0;
     }
@@ -221,4 +214,24 @@ void TimerBase::delay(long t)
     {
         _remaining -= (unsigned long)(abs(t));
     }
+}
+
+void TimerBase::setTime(unsigned long t)
+{
+    _timeSet = _remaining = t;
+}
+
+unsigned long TimerBase::timeSet()
+{
+    return _timeSet;
+}
+
+void TimerBase::setLoop(bool doLoop)
+{
+    _loop = doLoop;
+}
+
+void TimerBase::setTriggerOnFirstCheck(bool triggerOnFirstCheck)
+{
+    _triggerOnFirstCheck = triggerOnFirstCheck;
 }

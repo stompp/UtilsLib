@@ -1,13 +1,11 @@
 #ifndef _DISCRETE_SYSTEM_H_
 #define _DISCRETE_SYSTEM_H_
 
-
 #include <ArduinoPlatforms.h>
 
 #ifndef DISCRETE_SYSTEM_CALC_MODE
 #define DISCRETE_SYSTEM_CALC_MODE 0
 #endif
-
 class DiscreteSystem
 {
 private:

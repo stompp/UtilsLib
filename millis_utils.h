@@ -1,6 +1,7 @@
-
+// #pragma once
 #ifndef _millis_utils_h_
 #define _millis_utils_h_
+
 
 #include "timer_base.h"
 
@@ -72,11 +73,11 @@ uint16_t chronoMinutesSinceMS(unsigned long sinceMillis);
 uint16_t chronoHoursSinceMS(unsigned long sinceMillis);
 /** Gets chrono days @return 0-54?*/
 uint16_t chronoDaysSinceMS(unsigned long sinceMillis);
-#ifdef ARDUINO
+
+#if defined(ARDUINO)
 void printChronoTimeMSMsFor(unsigned long rawMillis, Stream *stream);
 void printChronoTimeFor(unsigned long rawMillis, Stream *stream);
 #endif
-
 class MillisTimer : public virtual TimerBase
 {
 protected:
@@ -87,11 +88,12 @@ protected:
     virtual unsigned long frequency_to_period(double hertzs);
 
 public:
-    MillisTimer(/* args */);
-    MillisTimer(unsigned long t, bool loop = false, bool start = false, bool triggerOnFirstCheck = false);
-    ~MillisTimer();
-};
+    MillisTimer(/* args */):TimerBase(){
 
+    }
+    MillisTimer(unsigned long t, bool loop = false, bool start = false, bool triggerOnFirstCheck = false);
+    virtual ~MillisTimer();
+};
 
 class MillisChronometer
 {
