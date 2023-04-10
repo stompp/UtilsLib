@@ -4,7 +4,7 @@
 // #include <stdint.h>
 #include <ArduinoPlatforms.h>
 
-// #include <math.h>
+#include <math.h>
 
 long valueInCircularRange(long value, long valueMax);
 float fvalueInCircularRange(float value, float valueMax);
