@@ -17,6 +17,8 @@
 #ifdef RPI
 #include <iostream>
 #include <cstring>
+#include <stdint.h>
+#include <cctype>
 using namespace std;
 #endif
 
@@ -53,8 +55,54 @@ int charsFor(long value);
 FloatParts getFloatParts(float x, int digits = 6);
 
 #ifdef RPI
+template <typename T>
+void print(T s)
+{
+	//  printf(s);
+	cout << s;
+}
 
+template <typename T>
+void println(T s)
+{
+	cout << s << endl;
+}
 
+template <typename K, typename T>
+void printValue(K s, T value)
+{
+
+	print(s);
+	print(" -> ");
+	println(value);
+}
+
+template <typename T>
+void debugValue(string n, T v)
+{
+	printValue(n, v);
+	// printf(n);
+	// printf(" ");
+	// println(v);
+}
+
+template <typename T>
+void printArray(T *data, uint8_t size, char delimiter = ',')
+{
+	uint8_t endP = size - 1;
+	for (uint8_t n = 0; n < endP; n++)
+	{
+		print(data[n]);
+		print(delimiter);
+	}
+	print(data[endP]);
+}
+template <typename T>
+void printArrayln(T *data, uint8_t size, char delimiter = ',')
+{
+	printArray(data,size,delimiter);
+	println("");
+}
 #else
 /**
  * Get free RAM. Taken from the net
@@ -230,6 +278,15 @@ uint32_t print_pgm_strln(PGM_P progString, Print *p = &Serial);
 int readAverage(int analogPin, int N);
 int readAverage(int analogPin, unsigned int nSamples, unsigned long period);
 
+template <typename T>
+void swap(T &a, T &b)
+{
+	T c;
+	c = a;
+	a = b;
+	b = c;
+}
+
 #endif // DEBUG
 
 template <class T>
@@ -262,14 +319,6 @@ unsigned long lowWordUL(unsigned long mValue);
 
 int findOcurrencesUntil(char *str, char target, char term);
 
-template <typename T>
-void swap(T &a, T &b)
-{
-	T c;
-	c = a;
-	a = b;
-	b = c;
-}
 template <typename T>
 void sortAsc(T *data, uint8_t size)
 {
@@ -311,15 +360,15 @@ struct LetterAndNumber
 		parse(s);
 	}
 
-	string toString(){
+	string toString()
+	{
 		string s;
-		s+= letter;
-		s+= to_string(number);
+		s += letter;
+		s += to_string(number);
 		return s;
 	}
-	
 
-	void parse(const char* s)
+	void parse(const char *s)
 	{
 		letter = 0;
 		number = 0;
@@ -336,7 +385,7 @@ struct LetterAndNumber
 
 	void parse(string s)
 	{
-		
+
 		letter = 0;
 		number = 0;
 
@@ -352,17 +401,14 @@ struct LetterAndNumber
 
 	// void print(ostream strm = std::cout)
 	// {
-		
-	
+
 	// 	strm << toString();
-		
+
 	// }
 	void print()
 	{
-		
-	
+
 		cout << toString();
-		
 	}
 #else
 	LetterAndNumber(String &s)
